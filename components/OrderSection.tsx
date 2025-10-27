@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Instagram, Facebook, Twitter, Youtube, Users, Heart, Eye, PlayCircle, Star, MessageSquare, Repeat, Radio, Clock, Mic } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Instagram, Facebook, Youtube, Users, Heart, Eye, PlayCircle, Star, MessageSquare, Repeat, Radio, Clock, Mic } from 'lucide-react';
 
 // --- ÍCONES CUSTOMIZADOS ---
 
@@ -17,6 +17,12 @@ const SpotifyIcon = (props: React.SVGProps<SVGSVGElement>) => (
 const TwitchIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
         <path d="M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7"></path>
+    </svg>
+);
+
+const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
     </svg>
 );
 
@@ -58,7 +64,7 @@ const socialMediaData = {
         ] 
     },
     Twitter: { 
-        icon: Twitter, 
+        icon: XIcon, 
         services: [
             { name: 'Seguidores (Mundiais)', icon: Users, min: 100, max: 25000, step: 100, placeholder: 'Link do seu perfil do Twitter (X)' },
             { name: 'Curtidas', icon: Heart, min: 100, max: 10000, step: 100, placeholder: 'Link do seu Tweet' },
@@ -87,40 +93,50 @@ const socialMediaData = {
 
 const socialNetworks = Object.keys(socialMediaData);
 
+type Service = typeof socialMediaData.Instagram.services[0];
+
 export const OrderSection: React.FC = () => {
     const [selectedSocial, setSelectedSocial] = useState('Instagram');
-    const [selectedService, setSelectedService] = useState(socialMediaData.Instagram.services[0]);
+    const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [quantity, setQuantity] = useState(1000);
     const [link, setLink] = useState('');
     const [comments, setComments] = useState('');
     const [customRequest, setCustomRequest] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    
+    const dropdownRef = useRef<HTMLDivElement>(null);
     
     const isCommentService = useMemo(() => selectedService?.type === 'comments', [selectedService]);
     const commentCount = useMemo(() => comments.split('\n').filter(line => line.trim() !== '').length, [comments]);
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const handleSocialSelect = (social: string) => {
         setSelectedSocial(social);
+        setSelectedService(null); // Reset service selection
+        setIsDropdownOpen(false);
 
         if (social === 'Custom') {
-            // @ts-ignore
-            setSelectedService(null);
             setCustomRequest('');
-            return;
-        }
-
-        const newServices = socialMediaData[social as keyof typeof socialMediaData].services;
-        if (newServices && newServices.length > 0) {
-            handleServiceSelect(newServices[0]);
         } else {
-            // @ts-ignore
-            setSelectedService(null);
-            setQuantity(0);
+             // Reset fields when changing social network
+            setQuantity(1000);
+            setLink('');
+            setComments('');
         }
-        setLink('');
-        setComments('');
     };
     
-    const handleServiceSelect = (service: typeof selectedService) => {
+    const handleServiceSelect = (service: Service) => {
         setSelectedService(service);
         if (service.type !== 'comments') {
             setQuantity(Math.max(1000, service.min || 0));
@@ -128,6 +144,7 @@ export const OrderSection: React.FC = () => {
         } else {
             setQuantity(0);
         }
+        setIsDropdownOpen(false);
     };
 
     const handleBuyClick = () => {
@@ -170,9 +187,8 @@ export const OrderSection: React.FC = () => {
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     };
 
-
     const getButtonText = () => {
-        if (!selectedService) return 'Selecione um Serviço';
+        if (!selectedService) return 'Escolha um Serviço';
         if (isCommentService) {
             return `Comprar ${commentCount} Comentários`;
         }
@@ -193,23 +209,26 @@ export const OrderSection: React.FC = () => {
                 <div className="max-w-3xl mx-auto bg-brand-dark p-6 md:p-8 rounded-2xl shadow-2xl shadow-brand-purple/10 border border-brand-purple/30">
                     {/* 1. Social Network Selector */}
                     <div className="mb-6">
-                        <label className="block text-lg font-semibold mb-3 text-slate-200">1. Selecione o Serviço</label>
+                        <label className="block text-lg font-semibold mb-3 text-slate-200">1. Selecione a Plataforma</label>
                         <div className="grid grid-cols-4 sm:grid-cols-8 gap-4 py-4">
                             {socialNetworks.map((name) => {
                                 const Icon = socialMediaData[name as keyof typeof socialMediaData].icon;
                                 const hasServices = socialMediaData[name as keyof typeof socialMediaData].services.length > 0;
                                 if (!hasServices) return null;
+
+                                const isX = name === 'Twitter';
                                 
                                 return (
                                 <div key={name} className="flex flex-col items-center">
                                     <button
                                         onClick={() => handleSocialSelect(name)}
-                                        className={`p-4 rounded-full border-2 transition-all duration-300 transform-gpu ${selectedSocial === name ? 'bg-gradient-to-br from-brand-purple to-brand-pink border-brand-pink scale-110 shadow-lg shadow-brand-purple/30' : 'bg-brand-dark-200 border-brand-purple/30 hover:border-brand-pink hover:scale-105'}`}
+                                        className={`p-4 rounded-full border-2 transition-all duration-300 transform-gpu flex items-center justify-center ${selectedSocial === name ? 'bg-gradient-to-br from-brand-purple to-brand-pink border-brand-pink scale-110 shadow-lg shadow-brand-purple/30' : 'bg-brand-dark-200 border-brand-purple/30 hover:border-brand-pink hover:scale-105'}`}
+                                        style={{ width: '68px', height: '68px' }}
                                     >
-                                        <Icon style={iconStyle} className={selectedSocial === name ? 'text-white' : 'text-slate-300'} />
+                                        <Icon style={isX ? { width: '28px', height: '28px'} : iconStyle} className={selectedSocial === name ? 'text-white' : 'text-slate-300'} />
                                     </button>
                                     <span className={`mt-2 text-xs font-semibold h-4 transition-all duration-300 ${selectedSocial === name ? 'opacity-100 text-brand-pink' : 'opacity-50'}`}>
-                                        {name}
+                                        {name === 'Twitter' ? 'X' : name}
                                     </span>
                                 </div>
                             )})}
@@ -217,7 +236,7 @@ export const OrderSection: React.FC = () => {
                                 <button
                                     onClick={() => handleSocialSelect('Custom')}
                                     className={`w-full p-4 rounded-full border-2 transition-all duration-300 transform-gpu flex flex-col justify-center items-center text-center ${selectedSocial === 'Custom' ? 'bg-gradient-to-br from-brand-purple to-brand-pink border-brand-pink scale-110 shadow-lg shadow-brand-purple/30' : 'bg-brand-dark-200 border-brand-purple/30 hover:border-brand-pink hover:scale-105'}`}
-                                    style={{ minHeight: '68px' }} 
+                                    style={{ height: '68px' }} 
                                 >
                                     <span className={`text-xs font-semibold leading-tight ${selectedSocial === 'Custom' ? 'text-white' : 'text-slate-300'}`}>Outros</span>
                                     <span className={`text-xs font-semibold leading-tight ${selectedSocial === 'Custom' ? 'text-white' : 'text-slate-300'}`}>Serviços</span>
@@ -255,30 +274,46 @@ export const OrderSection: React.FC = () => {
                         </>
                     ) : (
                         <>
-                            {selectedService && (
                             <div className="mb-6">
-                                 <label className="block text-lg font-semibold mb-3 text-slate-200">2. Escolha o Serviço</label>
-                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {socialMediaData[selectedSocial as keyof typeof socialMediaData].services.map((service) => {
-                                        const Icon = service.icon;
-                                        return (
-                                        <button
-                                            key={service.name}
-                                            onClick={() => handleServiceSelect(service)}
-                                            className={`flex items-center justify-start text-left w-full p-3 rounded-lg border-2 transition-all duration-300 font-bold transform-gpu hover:scale-105 ${
-                                                selectedService.name === service.name
-                                                    ? 'bg-gradient-to-r from-brand-purple to-brand-pink border-brand-pink text-white shadow-md shadow-brand-purple/20'
-                                                    : 'bg-brand-dark-200 border-brand-purple/30 text-slate-300 hover:border-brand-pink'
-                                            }`}
-                                        >
-                                            <Icon style={serviceIconStyle} />
-                                            <span>{service.name}</span>
-                                        </button>
-                                    )})}
-                                 </div>
-                            </div>
-                            )}
+                                <label className="block text-lg font-semibold mb-3 text-slate-200">2. Escolha o Serviço</label>
+                                <div className="relative" ref={dropdownRef}>
+                                    <button
+                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                        className="flex items-center justify-between w-full p-3 rounded-lg border-2 bg-brand-dark-200 border-brand-purple/30 text-slate-300 hover:border-brand-pink transition-all duration-300 font-semibold"
+                                        aria-haspopup="listbox"
+                                        aria-expanded={isDropdownOpen}
+                                    >
+                                        {selectedService ? (
+                                        <div className="flex items-center">
+                                            <selectedService.icon style={serviceIconStyle} />
+                                            <span>{selectedService.name}</span>
+                                        </div>
+                                        ) : (
+                                        <span className="text-slate-400">Escolha seu serviço</span>
+                                        )}
+                                        <svg className={`w-5 h-5 transform transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
 
+                                    {isDropdownOpen && (
+                                        <div className="absolute top-full mt-2 left-0 w-full bg-brand-dark border border-brand-purple/50 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                        {socialMediaData[selectedSocial as keyof typeof socialMediaData].services.map((service) => {
+                                            const Icon = service.icon;
+                                            return (
+                                            <button
+                                                key={service.name}
+                                                onClick={() => handleServiceSelect(service)}
+                                                className="flex items-center text-left w-full p-3 hover:bg-brand-purple/30 transition-colors duration-200 text-slate-200 font-semibold"
+                                            >
+                                                <Icon style={serviceIconStyle} />
+                                                <span>{service.name}</span>
+                                            </button>
+                                            );
+                                        })}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
                             {selectedService && !isCommentService && (
                             <div className="mb-6">
                                 <label htmlFor="quantity" className="block text-lg font-semibold mb-3 text-slate-200">3. Defina a Quantidade</label>
@@ -328,7 +363,7 @@ export const OrderSection: React.FC = () => {
                             {selectedService && (
                             <div className="text-center pt-4">
                                 <button onClick={handleBuyClick} className="w-full md:w-auto bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-                                  disabled={(isCommentService && commentCount < (selectedService.min || 10)) || !link.trim()}
+                                  disabled={!selectedService || !link.trim() || (isCommentService && commentCount < (selectedService.min || 10))}
                                 >
                                    {getButtonText()}
                                 </button>

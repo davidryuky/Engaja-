@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { handleScroll } from '../utils/scroll';
 
 interface StatCounterProps {
   end: number;
@@ -96,17 +97,6 @@ export const HeroSection: React.FC = () => {
     { end: 578, suffix: '', text: 'Clientes Satisfeitos', icon: <UsersIcon />, },
     { end: 1, suffix: ' Milhão', text: 'de Seguidores Entregues', icon: <TrendingUpIcon />, }
   ];
-
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const href = e.currentTarget.getAttribute('href');
-    if (href) {
-      const targetElement = document.querySelector(href);
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
 
   return (
     <section id="home" className="relative h-screen min-h-[750px] flex items-center justify-center text-center text-white overflow-hidden">

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
+import { Instagram, Facebook, Youtube } from 'lucide-react';
 
 const SocialIcon: React.FC<{ icon: React.ReactNode }> = ({ icon }) => (
     <div className="p-6 bg-brand-dark-200 rounded-full border-2 border-brand-purple/30 text-slate-300 transition-all duration-300 transform hover:scale-110 hover:text-white hover:bg-gradient-to-br hover:from-brand-purple hover:to-brand-pink hover:border-brand-pink cursor-pointer">
@@ -37,9 +37,16 @@ const TwitchIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+);
+
 
 export const SocialIconsSection: React.FC = () => {    
     const iconStyle = { width: '48px', height: '48px', strokeWidth: '1.5px' };
+    const xIconStyle = { width: '40px', height: '40px' };
 
     return (
         <section className="py-20 md:py-32 bg-brand-dark">
@@ -56,7 +63,7 @@ export const SocialIconsSection: React.FC = () => {
                     <SocialIcon icon={<Instagram style={iconStyle} />} />
                     <SocialIcon icon={<TiktokIcon style={iconStyle} />} />
                     <SocialIcon icon={<Facebook style={iconStyle} />} />
-                    <SocialIcon icon={<Twitter style={iconStyle} />} />
+                    <SocialIcon icon={<XIcon style={xIconStyle} />} />
                     <SocialIcon icon={<Youtube style={iconStyle} />} />
                     <SocialIcon icon={<TwitchIcon style={iconStyle} />} />
                     <SocialIcon icon={<SpotifyIcon style={iconStyle} />} />

@@ -1,18 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
-const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, callback?: () => void) => {
-  e.preventDefault();
-  const href = e.currentTarget.getAttribute('href');
-  if (href && href.startsWith('#')) {
-    const targetElement = document.querySelector(href);
-    if (targetElement) {
-      targetElement.scrollIntoView({ behavior: 'smooth' });
-      if (callback) {
-        callback();
-      }
-    }
-  }
-};
+import { handleScroll } from '../utils/scroll';
 
 const NavLink: React.FC<{ href: string; children: React.ReactNode; onClick?: () => void }> = ({ href, children, onClick }) => (
   <a
@@ -25,7 +12,7 @@ const NavLink: React.FC<{ href: string; children: React.ReactNode; onClick?: () 
   </a>
 );
 
-export const Header: React.FC = () => {
+export const Header: React.FC<{ onFreeTrialClick: () => void }> = ({ onFreeTrialClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -37,12 +24,10 @@ export const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScrollEvent);
   }, []);
   
-  const navLinks = [
-    { href: '#home', label: 'Home' },
-    { href: '#comprar', label: 'Comprar Agora' },
-    { href: '#depoimentos', label: 'Depoimentos' },
-    { href: '#contato', label: 'Contato' },
-  ];
+  const handleMobileLinkClick = (callback?: () => void) => {
+      if (callback) callback();
+      setIsMenuOpen(false);
+  }
 
   return (
     <>
@@ -51,13 +36,19 @@ export const Header: React.FC = () => {
           <a href="#home" onClick={handleScroll} className="transition-transform hover:scale-105">
             <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-14" />
           </a>
-          <nav className="hidden md:flex space-x-8">
-            {navLinks.map((link) => (
-              <NavLink key={link.href} href={link.href}>
-                {link.label}
-              </NavLink>
-            ))}
-          </nav>
+          <div className="hidden md:flex items-center gap-8">
+             <nav className="flex space-x-8 items-center">
+                <NavLink href="#comprar">Comprar Agora</NavLink>
+                <NavLink href="#depoimentos">Depoimentos</NavLink>
+                <NavLink href="#contato">Contato</NavLink>
+            </nav>
+             <button
+                onClick={onFreeTrialClick}
+                className="bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-semibold py-2 px-6 rounded-full text-base transition-all duration-300 transform hover:scale-105 shadow-md shadow-brand-purple/30"
+              >
+                Teste Grátis
+              </button>
+          </div>
           <div className="md:hidden">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu" className="z-50 relative w-8 h-8">
               <span className={`block absolute h-0.5 w-full bg-white transition-all duration-300 ${isMenuOpen ? 'rotate-45 top-1/2' : 'top-2'}`}></span>
@@ -78,11 +69,15 @@ export const Header: React.FC = () => {
           onClick={(e) => e.stopPropagation()}
         >
           <nav className="flex flex-col items-center justify-center h-full space-y-8">
-            {navLinks.map((link) => (
-              <NavLink key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)}>
-                {link.label}
-              </NavLink>
-            ))}
+            <button
+                onClick={() => handleMobileLinkClick(onFreeTrialClick)}
+                className="bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-semibold py-3 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40"
+            >
+                Teste Grátis
+            </button>
+            <NavLink href="#comprar" onClick={() => setIsMenuOpen(false)}>Comprar Agora</NavLink>
+            <NavLink href="#depoimentos" onClick={() => setIsMenuOpen(false)}>Depoimentos</NavLink>
+            <NavLink href="#contato" onClick={() => setIsMenuOpen(false)}>Contato</NavLink>
           </nav>
         </div>
       </div>

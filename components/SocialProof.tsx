@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 
 const names = ['Ana B.', 'Lucas M.', 'Beatriz S.', 'Carlos P.', 'Mariana F.', 'Pedro A.', 'Sofia R.', 'Ricardo J.', 'Julia C.', 'Gustavo L.', 'Fernanda T.', 'Rafael G.'];
@@ -35,9 +32,9 @@ export const SocialProof: React.FC = () => {
   const handleClose = () => {
       userClosedRef.current = true;
       setIsVisible(false);
-      // FIX: Pass timer ID argument to clearTimeout to correctly clear the timer.
+      // FIX: Pass the timer ID to clearTimeout to correctly clear the timer.
       if (visibilityTimerRef.current) window.clearTimeout(visibilityTimerRef.current);
-      // FIX: Pass timer ID argument to clearTimeout to correctly clear the timer.
+      // FIX: Pass the timer ID to clearTimeout to correctly clear the timer.
       if (scheduleTimerRef.current) window.clearTimeout(scheduleTimerRef.current);
   };
 
