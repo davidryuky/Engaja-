@@ -12,7 +12,7 @@ const StarIcon: React.FC<{ filled: boolean }> = ({ filled }) => (
 );
 
 const TestimonialCard: React.FC<{ testimonial: TestimonialData }> = ({ testimonial }) => (
-  <div className="relative bg-brand-dark-200 p-8 rounded-xl border border-purple-900/50 transition-all duration-300 hover:border-brand-lilac hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2 flex flex-col h-full group overflow-hidden">
+  <div className="relative bg-brand-dark-200 p-8 rounded-xl border border-brand-purple/30 transition-all duration-300 hover:border-brand-pink hover:shadow-2xl hover:shadow-brand-purple/20 hover:-translate-y-2 flex flex-col h-full group overflow-hidden">
     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
     <div className="relative z-10 flex flex-col h-full">
       <div className="flex mb-4">
@@ -22,13 +22,13 @@ const TestimonialCard: React.FC<{ testimonial: TestimonialData }> = ({ testimoni
       </div>
       <p className="text-slate-300 italic mb-6 flex-grow">"{testimonial.text}"</p>
       <div className="flex items-center">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-purple to-purple-600 flex items-center justify-center mr-4 shadow-lg shadow-purple-500/20">
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-purple to-brand-pink flex items-center justify-center mr-4 shadow-lg shadow-brand-purple/20">
           {/* Simple User Icon */}
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </div>
         <div>
           <h4 className="font-bold text-white">{testimonial.name}</h4>
-          <p className="text-sm text-brand-lilac">
+          <p className="text-sm text-brand-pink">
             <span>{testimonial.handle.substring(0, 6)}</span>
             <span className="blur-sm">{testimonial.handle.substring(6)}</span>
           </p>
@@ -72,7 +72,7 @@ export const TestimonialsSection: React.FC = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-extrabold text-white">
-            O que nossos <span className="text-brand-lilac">Clientes Dizem</span>
+            O que nossos <span className="text-brand-pink">Clientes Dizem</span>
           </h2>
           <p className="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
             A confiança e o sucesso de quem já transformou seu perfil com a gente.

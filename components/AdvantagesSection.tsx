@@ -2,11 +2,11 @@ import React from 'react';
 
 // FIX: Replaced JSX.Element with React.ReactElement to resolve the "Cannot find namespace 'JSX'" error.
 const AdvantageCard: React.FC<{ icon: React.ReactElement; title: string; description: string }> = ({ icon, title, description }) => (
-  <div className="relative bg-brand-dark-200 p-6 rounded-xl border border-purple-900/50 transition-all duration-300 hover:border-brand-lilac hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2 group overflow-hidden">
+  <div className="relative bg-brand-dark-200 p-6 rounded-xl border border-brand-purple/30 transition-all duration-300 hover:border-brand-pink hover:shadow-2xl hover:shadow-brand-purple/20 hover:-translate-y-2 group overflow-hidden">
     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
     <div className="relative z-10">
       <div className="flex items-center mb-4">
-        <div className="bg-gradient-to-br from-brand-purple to-purple-600 p-3 rounded-full mr-4 text-white shadow-lg shadow-purple-500/20">
+        <div className="bg-gradient-to-br from-brand-purple to-brand-pink p-3 rounded-full mr-4 text-white shadow-lg shadow-brand-purple/30">
           {icon}
         </div>
         <h3 className="text-xl font-bold text-white">{title}</h3>
@@ -56,7 +56,7 @@ export const AdvantagesSection: React.FC = () => {
         <div className="container mx-auto px-6 relative z-10">
             <div className="text-center mb-16">
                 <h2 className="text-3xl md:text-4xl font-extrabold text-white">
-                    Por que escolher a <span className="text-brand-lilac">Engaja+</span>?
+                    Por que escolher a <span className="text-brand-pink">Engaja+</span>?
                 </h2>
                 <p className="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
                     Oferecemos mais do que números. Entregamos a base para o seu sucesso digital em plataformas como Instagram, TikTok, YouTube, Facebook, Twitter e LinkedIn.

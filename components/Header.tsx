@@ -18,10 +18,10 @@ const NavLink: React.FC<{ href: string; children: React.ReactNode; onClick?: () 
   <a
     href={href}
     onClick={(e) => handleScroll(e, onClick)}
-    className="text-slate-200 hover:text-brand-lilac transition-colors duration-300 text-lg group"
+    className="text-slate-200 hover:text-brand-pink transition-colors duration-300 text-lg group"
   >
     {children}
-    <span className="block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-brand-lilac"></span>
+    <span className="block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-brand-pink"></span>
   </a>
 );
 

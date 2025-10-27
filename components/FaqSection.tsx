@@ -4,15 +4,15 @@ const FaqItem: React.FC<{ question: string; answer: string }> = ({ question, ans
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-b border-purple-900/50 py-6 last:border-b-0">
+    <div className="border-b border-brand-purple/30 py-6 last:border-b-0">
       <button
         className="w-full flex justify-between items-center text-left text-lg md:text-xl font-semibold text-white focus:outline-none group"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
-        <span className={`transition-colors duration-300 ${isOpen ? 'text-brand-lilac' : 'group-hover:text-slate-200'}`}>{question}</span>
+        <span className={`transition-colors duration-300 ${isOpen ? 'text-brand-pink' : 'group-hover:text-slate-200'}`}>{question}</span>
         <svg
-          className={`w-6 h-6 transform transition-transform duration-300 text-brand-lilac ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+          className={`w-6 h-6 transform transition-transform duration-300 text-brand-pink ${isOpen ? 'rotate-180' : 'rotate-0'}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -40,7 +40,7 @@ export const FaqSection: React.FC = () => {
         'Um número maior de seguidores serve como prova social, aumentando a credibilidade do seu perfil. Isso atrai mais seguidores orgânicos, incentiva mais curtidas e comentários, e aumenta a visibilidade do seu conteúdo, fazendo com que os algoritmos o recomendem para mais pessoas.',
     },
     {
-      question: 'É seguro comprar seguidores com a YouNextSocial?',
+      question: 'É seguro comprar seguidores com a Engaja+?',
       answer:
         'Sim, totalmente seguro. Utilizamos métodos que estão em conformidade com as diretrizes das redes sociais. Nunca solicitamos sua senha, garantindo a total segurança e privacidade da sua conta.',
     },
@@ -67,7 +67,7 @@ export const FaqSection: React.FC = () => {
             Esclareça suas principais dúvidas sobre como podemos impulsionar seu sucesso.
           </p>
         </div>
-        <div className="max-w-4xl mx-auto bg-brand-dark-200 p-4 md:p-8 rounded-2xl border border-purple-900/50">
+        <div className="max-w-4xl mx-auto bg-brand-dark-200 p-4 md:p-8 rounded-2xl border border-brand-purple/30">
           {faqs.map((faq, index) => (
             <FaqItem key={index} question={faq.question} answer={faq.answer} />
           ))}

@@ -190,7 +190,7 @@ export const OrderSection: React.FC = () => {
                     <p className="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">É rápido, fácil e 100% seguro.</p>
                 </div>
 
-                <div className="max-w-3xl mx-auto bg-brand-dark p-6 md:p-8 rounded-2xl shadow-2xl shadow-purple-500/10 border border-purple-900/50">
+                <div className="max-w-3xl mx-auto bg-brand-dark p-6 md:p-8 rounded-2xl shadow-2xl shadow-brand-purple/10 border border-brand-purple/30">
                     {/* 1. Social Network Selector */}
                     <div className="mb-6">
                         <label className="block text-lg font-semibold mb-3 text-slate-200">1. Selecione o Serviço</label>
@@ -204,11 +204,11 @@ export const OrderSection: React.FC = () => {
                                 <div key={name} className="flex flex-col items-center">
                                     <button
                                         onClick={() => handleSocialSelect(name)}
-                                        className={`p-4 rounded-full border-2 transition-all duration-300 transform-gpu ${selectedSocial === name ? 'bg-brand-purple border-brand-lilac scale-110 shadow-lg shadow-purple-500/30' : 'bg-brand-dark-200 border-purple-900/50 hover:border-brand-lilac hover:scale-105'}`}
+                                        className={`p-4 rounded-full border-2 transition-all duration-300 transform-gpu ${selectedSocial === name ? 'bg-gradient-to-br from-brand-purple to-brand-pink border-brand-pink scale-110 shadow-lg shadow-brand-purple/30' : 'bg-brand-dark-200 border-brand-purple/30 hover:border-brand-pink hover:scale-105'}`}
                                     >
                                         <Icon style={iconStyle} className={selectedSocial === name ? 'text-white' : 'text-slate-300'} />
                                     </button>
-                                    <span className={`mt-2 text-xs font-semibold h-4 transition-all duration-300 ${selectedSocial === name ? 'opacity-100 text-brand-lilac' : 'opacity-50'}`}>
+                                    <span className={`mt-2 text-xs font-semibold h-4 transition-all duration-300 ${selectedSocial === name ? 'opacity-100 text-brand-pink' : 'opacity-50'}`}>
                                         {name}
                                     </span>
                                 </div>
@@ -216,13 +216,13 @@ export const OrderSection: React.FC = () => {
                              <div className="flex flex-col items-center">
                                 <button
                                     onClick={() => handleSocialSelect('Custom')}
-                                    className={`w-full p-4 rounded-full border-2 transition-all duration-300 transform-gpu flex flex-col justify-center items-center text-center ${selectedSocial === 'Custom' ? 'bg-brand-purple border-brand-lilac scale-110 shadow-lg shadow-purple-500/30' : 'bg-brand-dark-200 border-purple-900/50 hover:border-brand-lilac hover:scale-105'}`}
+                                    className={`w-full p-4 rounded-full border-2 transition-all duration-300 transform-gpu flex flex-col justify-center items-center text-center ${selectedSocial === 'Custom' ? 'bg-gradient-to-br from-brand-purple to-brand-pink border-brand-pink scale-110 shadow-lg shadow-brand-purple/30' : 'bg-brand-dark-200 border-brand-purple/30 hover:border-brand-pink hover:scale-105'}`}
                                     style={{ minHeight: '68px' }} 
                                 >
                                     <span className={`text-xs font-semibold leading-tight ${selectedSocial === 'Custom' ? 'text-white' : 'text-slate-300'}`}>Outros</span>
                                     <span className={`text-xs font-semibold leading-tight ${selectedSocial === 'Custom' ? 'text-white' : 'text-slate-300'}`}>Serviços</span>
                                 </button>
-                                <span className={`mt-2 text-xs font-semibold h-4 transition-all duration-300 ${selectedSocial === 'Custom' ? 'opacity-100 text-brand-lilac' : 'opacity-0'}`}>
+                                <span className={`mt-2 text-xs font-semibold h-4 transition-all duration-300 ${selectedSocial === 'Custom' ? 'opacity-100 text-brand-pink' : 'opacity-0'}`}>
                                     &nbsp;
                                 </span>
                             </div>
@@ -240,7 +240,7 @@ export const OrderSection: React.FC = () => {
                                     onChange={(e) => setCustomRequest(e.target.value)}
                                     placeholder="Ex: Gostaria de 500 seguidores para Twitter e 10.000 visualizações para um vídeo no YouTube..."
                                     rows={5}
-                                    className="w-full bg-brand-dark-200 border-2 border-purple-900/50 rounded-lg p-3 focus:outline-none focus:border-brand-lilac transition-colors duration-300"
+                                    className="w-full bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-3 focus:outline-none focus:border-brand-pink transition-colors duration-300"
                                 />
                             </div>
                             <div className="text-center pt-4">
@@ -267,8 +267,8 @@ export const OrderSection: React.FC = () => {
                                             onClick={() => handleServiceSelect(service)}
                                             className={`flex items-center justify-start text-left w-full p-3 rounded-lg border-2 transition-all duration-300 font-bold transform-gpu hover:scale-105 ${
                                                 selectedService.name === service.name
-                                                    ? 'bg-brand-purple border-brand-lilac text-white shadow-md shadow-purple-500/20'
-                                                    : 'bg-brand-dark-200 border-purple-900/50 text-slate-300 hover:border-brand-lilac'
+                                                    ? 'bg-gradient-to-r from-brand-purple to-brand-pink border-brand-pink text-white shadow-md shadow-brand-purple/20'
+                                                    : 'bg-brand-dark-200 border-brand-purple/30 text-slate-300 hover:border-brand-pink'
                                             }`}
                                         >
                                             <Icon style={serviceIconStyle} />
@@ -291,9 +291,9 @@ export const OrderSection: React.FC = () => {
                                         step={selectedService.step}
                                         value={quantity}
                                         onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
-                                        className="w-full h-2 bg-purple-900/50 rounded-lg appearance-none cursor-pointer custom-slider focus:outline-none"
+                                        className="w-full h-2 bg-brand-purple/30 rounded-lg appearance-none cursor-pointer custom-slider focus:outline-none"
                                     />
-                                    <span className="bg-brand-dark-200 border-2 border-purple-900/50 rounded-lg text-white font-bold py-2 px-4 min-w-[90px] text-center">
+                                    <span className="bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg text-white font-bold py-2 px-4 min-w-[90px] text-center">
                                         {quantity.toLocaleString('pt-BR')}
                                     </span>
                                 </div>
@@ -309,7 +309,7 @@ export const OrderSection: React.FC = () => {
                                     onChange={(e) => setComments(e.target.value)}
                                     placeholder={`Digite um comentário por linha (mínimo ${selectedService.min || 10}).`}
                                     rows={5}
-                                    className="w-full bg-brand-dark-200 border-2 border-purple-900/50 rounded-lg p-3 focus:outline-none focus:border-brand-lilac transition-colors duration-300"
+                                    className="w-full bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-3 focus:outline-none focus:border-brand-pink transition-colors duration-300"
                                 />
                                 <p className={`text-sm mt-2 text-right ${commentCount < (selectedService.min || 10) ? 'text-yellow-400' : 'text-green-400'}`}>
                                     {commentCount}/{selectedService.min || 10} comentários
@@ -321,13 +321,13 @@ export const OrderSection: React.FC = () => {
                             {selectedService && (
                             <div className="mb-8">
                                 <label htmlFor="link" className="block text-lg font-semibold mb-3 text-slate-200">4. Link do Perfil ou Publicação</label>
-                                <input id="link" type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder={selectedService.placeholder} className="w-full bg-brand-dark-200 border-2 border-purple-900/50 rounded-lg p-3 focus:outline-none focus:border-brand-lilac transition-colors duration-300" />
+                                <input id="link" type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder={selectedService.placeholder} className="w-full bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-3 focus:outline-none focus:border-brand-pink transition-colors duration-300" />
                             </div>
                             )}
                             
                             {selectedService && (
                             <div className="text-center pt-4">
-                                <button onClick={handleBuyClick} className="w-full md:w-auto bg-gradient-to-r from-brand-purple to-purple-600 hover:from-purple-600 hover:to-brand-purple text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+                                <button onClick={handleBuyClick} className="w-full md:w-auto bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
                                   disabled={(isCommentService && commentCount < (selectedService.min || 10)) || !link.trim()}
                                 >
                                    {getButtonText()}

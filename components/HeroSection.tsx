@@ -16,19 +16,18 @@ export const HeroSection: React.FC = () => {
   return (
     <section id="home" className="relative h-screen min-h-[600px] flex items-center justify-center text-center text-white overflow-hidden">
       <div 
-        className="absolute top-0 left-0 w-full h-full bg-cover bg-center bg-fixed animate-backgroundPulse"
-        style={{ backgroundImage: "linear-gradient(to right, #8A2BE2, #C8A2C8, #8A2BE2, #C8A2C8)"}}
+        className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-brand-purple via-brand-pink to-brand-purple bg-[size:200%_200%] animate-backgroundPulse"
       ></div>
       <div 
-        className="absolute top-0 left-0 w-full h-full bg-cover bg-center"
+        className="absolute top-0 left-0 w-full h-full bg-cover bg-center opacity-30"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1579869847557-1f67382cc158?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1334')" }}
       ></div>
-      <div className="absolute top-0 left-0 w-full h-full bg-brand-dark opacity-90"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-brand-dark opacity-60"></div>
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-brand-dark via-brand-dark/50 to-transparent"></div>
       
       <div className="relative z-10 p-6">
         <div className="opacity-0 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-          <h2 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-brand-lilac via-white to-brand-lilac py-2">
+          <h2 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-pink py-2">
             Aumente seus seguidores
           </h2>
           <p className="text-4xl md:text-6xl font-extrabold leading-tight mb-8">
@@ -42,7 +41,7 @@ export const HeroSection: React.FC = () => {
           <a 
             href="#comprar"
             onClick={handleScroll}
-            className="bg-gradient-to-r from-brand-purple to-purple-600 hover:from-purple-600 hover:to-brand-purple text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-purple-500/40 relative overflow-hidden group"
+            className="bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40 relative overflow-hidden group"
           >
              <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
             Saiba Mais

@@ -46,11 +46,11 @@
         background: #1a102c; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #8A2BE2;
+        background: #e677af;
         border-radius: 10px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #C8A2C8;
+        background: #8073f1;
       }
       /* Hide arrows from number input */
       .hide-arrows::-webkit-outer-spin-button,
@@ -67,27 +67,27 @@
         appearance: none;
         width: 24px;
         height: 24px;
-        background: #C8A2C8; /* brand-lilac */
-        border: 2px solid #8A2BE2; /* brand-purple */
+        background: #e677af; /* brand-pink */
+        border: 2px solid #8073f1; /* brand-purple */
         border-radius: 50%;
         cursor: pointer;
         transition: all 0.2s ease-in-out;
         margin-top: -9px; /* center thumb on track */
       }
       .custom-slider:focus::-webkit-slider-thumb {
-         box-shadow: 0 0 0 4px rgba(138, 43, 226, 0.5);
+         box-shadow: 0 0 0 4px rgba(230, 119, 175, 0.5);
       }
       .custom-slider::-moz-range-thumb {
         width: 20px;
         height: 20px;
-        background: #C8A2C8; /* brand-lilac */
-        border: 2px solid #8A2BE2; /* brand-purple */
+        background: #e677af; /* brand-pink */
+        border: 2px solid #8073f1; /* brand-purple */
         border-radius: 50%;
         cursor: pointer;
         transition: all 0.2s ease-in-out;
       }
       .custom-slider:focus::-moz-range-thumb {
-         box-shadow: 0 0 0 4px rgba(138, 43, 226, 0.5);
+         box-shadow: 0 0 0 4px rgba(230, 119, 175, 0.5);
       }
     </style>
     <script>
@@ -98,8 +98,8 @@
               'sans': ['Poppins', 'sans-serif'],
             },
             colors: {
-              'brand-purple': '#8A2BE2',
-              'brand-lilac': '#C8A2C8',
+              'brand-purple': '#8073f1',
+              'brand-pink': '#e677af',
               'brand-dark': '#120c1f', // Darker background for more contrast
               'brand-dark-200': '#1e1433',
             },
@@ -109,8 +109,8 @@
                 '100%': { opacity: '1', transform: 'translateY(0)' },
               },
               backgroundPulse: {
-                '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
-                '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+                '0%, 100%': { 'background-position': '0% 50%' },
+                '50%': { 'background-position': '100% 50%' },
               },
                shine: {
                 '0%': { backgroundPosition: '-200% 0' },
