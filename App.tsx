@@ -10,6 +10,7 @@ import { ContactSection } from './components/ContactSection';
 import { WhatsAppButton } from './components/WhatsAppButton';
 import { Footer } from './components/Footer';
 import { AnimatedSection } from './components/AnimatedSection';
+import { SocialProof } from './components/SocialProof';
 
 const App: React.FC = () => {
   return (
@@ -36,6 +37,7 @@ const App: React.FC = () => {
       </main>
       <Footer />
       <WhatsAppButton />
+      <SocialProof />
     </div>
   );
 };
