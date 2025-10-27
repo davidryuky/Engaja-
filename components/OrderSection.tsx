@@ -249,20 +249,18 @@ export const OrderSection: React.FC = () => {
                     </div>
                     
                     {selectedSocial === 'Custom' ? (
-                        <>
-                            <div className="mb-6">
-                                <label htmlFor="customRequest" className="block text-lg font-semibold mb-3 text-slate-200">2. Pedido Personalizado</label>
-                                <p className="text-sm text-slate-400 mb-4">Se não encontrou o serviço que precisa ou deseja um pacote customizado, descreva sua necessidade abaixo. Nossa equipe entrará em contato para criar uma oferta especial para você.</p>
-                                <textarea 
-                                    id="customRequest"
-                                    value={customRequest}
-                                    onChange={(e) => setCustomRequest(e.target.value)}
-                                    placeholder="Ex: Gostaria de 500 seguidores para Twitter e 10.000 visualizações para um vídeo no YouTube..."
-                                    rows={5}
-                                    className="w-full bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-3 focus:outline-none focus:border-brand-pink transition-colors duration-300"
-                                />
-                            </div>
-                            <div className="text-center pt-4">
+                        <div className="mb-6">
+                            <label htmlFor="customRequest" className="block text-lg font-semibold mb-3 text-slate-200">2. Pedido Personalizado</label>
+                            <p className="text-sm text-slate-400 mb-4">Se não encontrou o serviço que precisa ou deseja um pacote customizado, descreva sua necessidade abaixo. Nossa equipe entrará em contato para criar uma oferta especial para você.</p>
+                            <textarea 
+                                id="customRequest"
+                                value={customRequest}
+                                onChange={(e) => setCustomRequest(e.target.value)}
+                                placeholder="Ex: Gostaria de 500 seguidores para Twitter e 10.000 visualizações para um vídeo no YouTube..."
+                                rows={5}
+                                className="w-full bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-3 focus:outline-none focus:border-brand-pink transition-colors duration-300"
+                            />
+                            <div className="text-center pt-6">
                                 <button 
                                     onClick={handleCustomRequestSubmit} 
                                     className="w-full md:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-500 text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-green-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -271,7 +269,7 @@ export const OrderSection: React.FC = () => {
                                     Solicitar Serviço
                                 </button>
                             </div>
-                        </>
+                        </div>
                     ) : (
                         <>
                             <div className="mb-6">
@@ -352,7 +350,6 @@ export const OrderSection: React.FC = () => {
                             </div>
                             )}
 
-
                             {selectedService && (
                             <div className="mb-8">
                                 <label htmlFor="link" className="block text-lg font-semibold mb-3 text-slate-200">4. Link do Perfil ou Publicação</label>
@@ -367,25 +364,27 @@ export const OrderSection: React.FC = () => {
                                 >
                                    {getButtonText()}
                                 </button>
-
-                                <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-slate-400 text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
-                                        <span>100% Seguro</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                        <span>Privacidade Garantida</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="m5 19 7-7 7 7"/></svg>
-                                        <span>Entrega Rápida</span>
-                                    </div>
-                                </div>
                             </div>
                             )}
                         </>
                     )}
+
+                    <div className="my-8 w-full h-px bg-gradient-to-r from-transparent via-brand-purple/30 to-transparent"></div>
+
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-slate-400 text-sm">
+                        <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                            <span>100% Seguro</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            <span>Privacidade Garantida</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="m5 19 7-7 7 7"/></svg>
+                            <span>Entrega Rápida</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
