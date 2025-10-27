@@ -235,8 +235,8 @@ export const OrderSection: React.FC = () => {
                              <div className="flex flex-col items-center">
                                 <button
                                     onClick={() => handleSocialSelect('Custom')}
-                                    className={`w-full p-4 rounded-full border-2 transition-all duration-300 transform-gpu flex flex-col justify-center items-center text-center ${selectedSocial === 'Custom' ? 'bg-gradient-to-br from-brand-purple to-brand-pink border-brand-pink scale-110 shadow-lg shadow-brand-purple/30' : 'bg-brand-dark-200 border-brand-purple/30 hover:border-brand-pink hover:scale-105'}`}
-                                    style={{ height: '68px' }} 
+                                    className={`p-4 rounded-full border-2 transition-all duration-300 transform-gpu flex flex-col justify-center items-center text-center ${selectedSocial === 'Custom' ? 'bg-gradient-to-br from-brand-purple to-brand-pink border-brand-pink scale-110 shadow-lg shadow-brand-purple/30' : 'bg-brand-dark-200 border-brand-purple/30 hover:border-brand-pink hover:scale-105'}`}
+                                    style={{ width: '68px', height: '68px' }} 
                                 >
                                     <span className={`text-xs font-semibold leading-tight ${selectedSocial === 'Custom' ? 'text-white' : 'text-slate-300'}`}>Outros</span>
                                     <span className={`text-xs font-semibold leading-tight ${selectedSocial === 'Custom' ? 'text-white' : 'text-slate-300'}`}>Serviços</span>
