@@ -144,13 +144,12 @@ export const HeroSection: React.FC = () => {
           </div>
         </div>
 
-        <div className="opacity-0 animate-fadeInUp mt-8" style={{ animationDelay: '0.6s' }}>
+        <div className="opacity-0 animate-fadeInUp mt-12" style={{ animationDelay: '0.6s' }}>
           <a 
             href="#comprar"
             onClick={handleScroll}
-            className="bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40 relative overflow-hidden group"
+            className="bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40"
           >
-             <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
             Saiba Mais
           </a>
         </div>
