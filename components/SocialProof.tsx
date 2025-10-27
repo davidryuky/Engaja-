@@ -113,7 +113,7 @@ export const SocialProof: React.FC = () => {
   return (
     <div
       key={notification?.id}
-      className={`fixed bottom-6 left-6 z-50 bg-brand-dark-200 border border-brand-purple/50 rounded-xl shadow-2xl shadow-brand-purple/20 p-4 max-w-sm w-full transition-all duration-500 ease-in-out transform ${
+      className={`fixed bottom-4 left-4 z-50 bg-brand-dark-200 border border-brand-purple/50 rounded-xl shadow-2xl shadow-brand-purple/20 p-4 w-[calc(100vw-2rem)] max-w-sm transition-all duration-500 ease-in-out transform ${
         isVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
       }`}
     >
