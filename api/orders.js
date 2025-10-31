@@ -29,12 +29,6 @@ function generatePublicId() {
 async function initializeDatabase() {
     const connection = await pool.getConnection();
     try {
-        // Drop the table if it exists to ensure a fresh start as requested
-        // NOTE: In a real production environment, you would use migrations instead of dropping tables.
-        // This is kept for development convenience as requested.
-        // await connection.execute(`DROP TABLE IF EXISTS orders`);
-
-        // Create the new, detailed orders table with a public-facing ID
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS orders (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -103,14 +97,38 @@ module.exports = async (req, res) => {
                     return res.status(400).json({ success: false, message: 'Dados do pedido incompletos.' });
                 }
 
-                const publicId = generatePublicId();
+                let publicId;
+                let success = false;
+                const maxRetries = 10; // Prevent infinite loops
 
-                const [result] = await connection.execute(
-                    'INSERT INTO orders (public_id, platform, service, link, quantity, comments) VALUES (?, ?, ?, ?, ?, ?)',
-                    [publicId, platform, service, link, quantity || null, comments || null]
-                );
-                
-                return res.status(201).json({ success: true, message: 'Pedido criado com sucesso.', publicId: publicId });
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        publicId = generatePublicId();
+                        await connection.execute(
+                            'INSERT INTO orders (public_id, platform, service, link, quantity, comments) VALUES (?, ?, ?, ?, ?, ?)',
+                            [publicId, platform, service, link, quantity || null, comments || null]
+                        );
+                        success = true; // If insert is successful, we're done
+                        break; // Exit the loop
+                    } catch (error) {
+                        // Check if it's a duplicate entry error (code for mysql/mysql2)
+                        if (error.code === 'ER_DUP_ENTRY') {
+                            // If so, the loop will continue and try with a new ID
+                            console.warn(`Collision detected for public_id ${publicId}. Retrying...`);
+                            continue;
+                        }
+                        // For any other error, re-throw it to be caught by the outer handler
+                        throw error;
+                    }
+                }
+
+                if (success) {
+                    return res.status(201).json({ success: true, message: 'Pedido criado com sucesso.', publicId: publicId });
+                } else {
+                    // If the loop finished without a successful insert
+                    console.error(`Failed to generate a unique public_id after ${maxRetries} attempts.`);
+                    return res.status(500).json({ success: false, message: 'Não foi possível gerar um ID único para o pedido. Tente novamente.' });
+                }
             }
             
             // --- PUT: Update an order's status ---
