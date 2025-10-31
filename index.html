@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-g" />
     <link rel="icon" type="image/png" href="https://i.postimg.cc/jj7rdzv8/logoengaja.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -30,116 +30,20 @@
     <meta name="twitter:description" content="Cansado de perfis parados? Transforme sua presença online com seguidores e curtidas de alta qualidade! Na Engaja+, garantimos um serviço rápido e seguro para viralizar seu conteúdo. Clique e veja a mágica acontecer!" />
     <meta name="twitter:image" content="https://i.postimg.cc/D00NBMB2/ogengaja-min.png" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-      html {
-        scroll-behavior: smooth;
-      }
-      /* Custom scrollbar for a more branded feel */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #1a102c; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #e677af;
-        border-radius: 10px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #8073f1;
-      }
-      /* Hide arrows from number input */
-      .hide-arrows::-webkit-outer-spin-button,
-      .hide-arrows::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-      .hide-arrows {
-        -moz-appearance: textfield;
-      }
-      /* Custom Slider Styles */
-      .custom-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 24px;
-        height: 24px;
-        background: #e677af; /* brand-pink */
-        border: 2px solid #8073f1; /* brand-purple */
-        border-radius: 50%;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        margin-top: -9px; /* center thumb on track */
-      }
-      .custom-slider:focus::-webkit-slider-thumb {
-         box-shadow: 0 0 0 4px rgba(230, 119, 175, 0.5);
-      }
-      .custom-slider::-moz-range-thumb {
-        width: 20px;
-        height: 20px;
-        background: #e677af; /* brand-pink */
-        border: 2px solid #8073f1; /* brand-purple */
-        border-radius: 50%;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-      }
-      .custom-slider:focus::-moz-range-thumb {
-         box-shadow: 0 0 0 4px rgba(230, 119, 175, 0.5);
-      }
-    </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              'sans': ['Poppins', 'sans-serif'],
-            },
-            colors: {
-              'brand-purple': '#8073f1',
-              'brand-pink': '#e677af',
-              'brand-dark': '#120c1f', // Darker background for more contrast
-              'brand-dark-200': '#1e1433',
-            },
-            keyframes: {
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              backgroundPulse: {
-                '0%, 100%': { 'background-position': '0% 50%' },
-                '50%': { 'background-position': '100% 50%' },
-              },
-               shine: {
-                '0%': { backgroundPosition: '-200% 0' },
-                '100%': { backgroundPosition: '200% 0' },
-              },
-            },
-            animation: {
-              fadeInUp: 'fadeInUp 0.8s ease-out forwards',
-              backgroundPulse: 'backgroundPulse 10s ease infinite',
-              shine: 'shine 1.5s linear infinite',
-            },
-          }
-        }
-      }
-    </script>
   <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.546.0",
-    "bcrypt": "https://aistudiocdn.com/bcrypt@^6.0.0",
     "mysql2/": "https://aistudiocdn.com/mysql2@^3.15.3/",
-    "url": "https://aistudiocdn.com/url@^0.11.4",
-    "path": "https://aistudiocdn.com/path@^0.12.7",
-    "cors": "https://aistudiocdn.com/cors@^2.8.5",
-    "dotenv": "https://aistudiocdn.com/dotenv@^17.2.3",
-    "express": "https://aistudiocdn.com/express@^5.1.0"
+    "bcrypt": "https://aistudiocdn.com/bcrypt@^6.0.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.552.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "vite": "https://aistudiocdn.com/vite@^7.1.12",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
   }
 }
 </script>
