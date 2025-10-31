@@ -5,7 +5,8 @@ interface DashboardPageProps {
 }
 
 interface Order {
-  id: number;
+  id: number; // Internal ID for updates
+  public_id: string; // Public-facing ID for display
   platform: string;
   service: string;
   link: string;
@@ -21,14 +22,13 @@ interface Order {
 interface StatusButtonProps {
     statusType: 'payment_status' | 'progress_status' | 'completion_status';
     currentStatus: string;
-    orderId: number;
+    orderId: number; // Use internal ID for API calls
     onStatusChange: (orderId: number, statusType: any, newStatus: any) => void;
 }
 
 const StatusButton: React.FC<StatusButtonProps> = ({ statusType, currentStatus, orderId, onStatusChange }) => {
     const [isLoading, setIsLoading] = useState(false);
 
-    // FIX: Define types for status configuration to ensure type safety. This resolves errors where `config` was inferred as `never`.
     type StatusInfo = { text: string; next: string; color: string };
     type StatusCategory = Record<string, StatusInfo>;
 
@@ -47,11 +47,10 @@ const StatusButton: React.FC<StatusButtonProps> = ({ statusType, currentStatus, 
         }
     };
     
-    // With the explicit type on statusConfig, TypeScript can correctly infer the type of `config` as `StatusInfo | undefined`.
-    const config = statusConfig[statusType][currentStatus];
+    const config = statusConfig[statusType]?.[currentStatus];
 
     if (!config) {
-        return null; // or a default button
+        return null;
     }
 
     const handleClick = async () => {
@@ -87,7 +86,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Function to fetch orders
   const fetchOrders = async () => {
     try {
       setError('');
@@ -108,7 +106,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     }
   };
   
-  // Fetch orders on component mount
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -119,6 +116,31 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             order.id === orderId ? { ...order, [statusType]: newStatus } : order
         )
     );
+  };
+
+  const handleDeleteOrder = async (orderId: number) => {
+    if (!window.confirm('Tem certeza que deseja apagar este pedido? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/orders', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            // Remove the order from the local state for an immediate UI update
+            setOrders(currentOrders => currentOrders.filter(order => order.id !== orderId));
+        } else {
+            throw new Error(data.message || 'Falha ao apagar o pedido.');
+        }
+    } catch (error) {
+        console.error(`Failed to delete order ${orderId}:`, error);
+        alert('Ocorreu um erro ao apagar o pedido. Tente novamente.');
+    }
   };
 
   return (
@@ -161,16 +183,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                       <div className="flex flex-wrap justify-between items-start gap-4">
                                         {/* Order Info */}
                                         <div className="flex-1 min-w-[250px]">
-                                          <p className="text-xs text-brand-pink font-bold">ID: {order.id}</p>
+                                          <p className="text-xs text-brand-pink font-bold">ID: {order.public_id}</p>
                                           <p className="text-lg font-semibold text-white">{order.platform} - {order.service}</p>
                                           <p className="text-sm text-slate-400 break-all">Link: <a href={order.link} target="_blank" rel="noopener noreferrer" className="hover:text-brand-pink">{order.link}</a></p>
                                           {order.quantity && <p className="text-sm text-slate-400">Quantidade: <span className="font-semibold text-slate-200">{order.quantity.toLocaleString('pt-BR')}</span></p>}
                                         </div>
-                                        {/* Status Buttons */}
+                                        {/* Status & Action Buttons */}
                                         <div className="flex items-center flex-wrap gap-2">
                                           <StatusButton statusType="payment_status" currentStatus={order.payment_status} orderId={order.id} onStatusChange={handleLocalStatusChange} />
                                           <StatusButton statusType="progress_status" currentStatus={order.progress_status} orderId={order.id} onStatusChange={handleLocalStatusChange} />
                                           <StatusButton statusType="completion_status" currentStatus={order.completion_status} orderId={order.id} onStatusChange={handleLocalStatusChange} />
+                                          <button 
+                                            onClick={() => handleDeleteOrder(order.id)}
+                                            className="p-2 rounded-full text-slate-500 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                                            title="Apagar Pedido"
+                                          >
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                              </svg>
+                                          </button>
                                         </div>
                                       </div>
                                       {order.comments && (

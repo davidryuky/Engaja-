@@ -192,12 +192,12 @@ export const OrderSection: React.FC = () => {
 
             const data = await response.json();
 
-            if (!data.success || !data.orderId) {
+            if (!data.success || !data.publicId) {
                 throw new Error(data.message || 'Não foi possível criar o pedido.');
             }
 
-            // Add Order ID to the message
-            const finalMessage = `${whatsappMessage}\n\n*ID do Pedido: ${data.orderId}*`;
+            // Add public Order ID to the message
+            const finalMessage = `${whatsappMessage}\n\n*ID do Pedido: ${data.publicId}*`;
             const encodedMessage = encodeURIComponent(finalMessage);
             const whatsappUrl = `https://wa.me/818075997250?text=${encodedMessage}`;
             

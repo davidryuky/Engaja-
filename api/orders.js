@@ -11,23 +11,34 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    // Add SSL support for secure connections if required by your provider
-    // ssl: {
-    //   rejectUnauthorized: true
-    // }
 });
+
+// Helper function to generate a random alphanumeric public ID
+function generatePublicId() {
+    const prefix = 'EG';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 5; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return prefix + result;
+}
+
 
 // Function to initialize the database (create table if not exists)
 async function initializeDatabase() {
     const connection = await pool.getConnection();
     try {
         // Drop the table if it exists to ensure a fresh start as requested
-        await connection.execute(`DROP TABLE IF EXISTS orders`);
+        // NOTE: In a real production environment, you would use migrations instead of dropping tables.
+        // This is kept for development convenience as requested.
+        // await connection.execute(`DROP TABLE IF EXISTS orders`);
 
-        // Create the new, detailed orders table
+        // Create the new, detailed orders table with a public-facing ID
         await connection.execute(`
-            CREATE TABLE orders (
+            CREATE TABLE IF NOT EXISTS orders (
                 id INT AUTO_INCREMENT PRIMARY KEY,
+                public_id VARCHAR(10) NOT NULL UNIQUE,
                 platform VARCHAR(255) NOT NULL,
                 service VARCHAR(255) NOT NULL,
                 link TEXT NOT NULL,
@@ -57,7 +68,7 @@ async function ensureDbInitialized() {
 module.exports = async (req, res) => {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     // Handle preflight OPTIONS request
@@ -92,12 +103,14 @@ module.exports = async (req, res) => {
                     return res.status(400).json({ success: false, message: 'Dados do pedido incompletos.' });
                 }
 
+                const publicId = generatePublicId();
+
                 const [result] = await connection.execute(
-                    'INSERT INTO orders (platform, service, link, quantity, comments) VALUES (?, ?, ?, ?, ?)',
-                    [platform, service, link, quantity || null, comments || null]
+                    'INSERT INTO orders (public_id, platform, service, link, quantity, comments) VALUES (?, ?, ?, ?, ?, ?)',
+                    [publicId, platform, service, link, quantity || null, comments || null]
                 );
                 
-                return res.status(201).json({ success: true, message: 'Pedido criado com sucesso.', orderId: result.insertId });
+                return res.status(201).json({ success: true, message: 'Pedido criado com sucesso.', publicId: publicId });
             }
             
             // --- PUT: Update an order's status ---
@@ -114,10 +127,24 @@ module.exports = async (req, res) => {
                     return res.status(400).json({ success: false, message: 'Tipo de status inválido.' });
                 }
                 
+                // Use the internal 'id' for updates as it's more efficient
                 const sql = `UPDATE orders SET ${statusType} = ? WHERE id = ?`;
                 await connection.execute(sql, [newStatus, orderId]);
 
                 return res.status(200).json({ success: true, message: 'Status do pedido atualizado com sucesso.' });
+            }
+
+            // --- DELETE: Delete an order ---
+            if (req.method === 'DELETE') {
+                const { orderId } = req.body;
+
+                if (!orderId) {
+                    return res.status(400).json({ success: false, message: 'ID do pedido é obrigatório.' });
+                }
+
+                await connection.execute('DELETE FROM orders WHERE id = ?', [orderId]);
+
+                return res.status(200).json({ success: true, message: 'Pedido apagado com sucesso.' });
             }
 
             return res.status(405).json({ success: false, message: 'Method Not Allowed' });
