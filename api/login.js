@@ -30,6 +30,16 @@ async function initializeDatabase() {
     }
 }
 
+// Ensure the database is initialized once
+let dbInitialized = false;
+async function ensureDbInitialized() {
+    if (!dbInitialized) {
+        await initializeDatabase();
+        dbInitialized = true;
+    }
+}
+
+
 // Vercel Serverless Function Handler
 module.exports = async (req, res) => {
     // Set CORS headers to allow requests from any origin
@@ -45,9 +55,16 @@ module.exports = async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).json({ success: false, message: 'Method Not Allowed' });
     }
+    
+    // Ensure DB is ready before proceeding
+    try {
+        await ensureDbInitialized();
+    } catch (dbError) {
+        console.error('Database Initialization Error:', dbError);
+        return res.status(500).json({ success: false, message: 'Falha crítica ao inicializar o banco de dados.' });
+    }
 
     try {
-        await initializeDatabase();
         const { username, password } = req.body;
 
         if (!username || !password) {

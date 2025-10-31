@@ -103,6 +103,7 @@ export const OrderSection: React.FC = () => {
     const [comments, setComments] = useState('');
     const [customRequest, setCustomRequest] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for the buy button
     
     const dropdownRef = useRef<HTMLDivElement>(null);
     
@@ -147,33 +148,67 @@ export const OrderSection: React.FC = () => {
         setIsDropdownOpen(false);
     };
 
-    const handleBuyClick = () => {
-        if (!link.trim()) {
-            alert('Por favor, insira o link do seu perfil ou publicação.');
-            return;
-        }
-        if (!selectedService) {
-             alert('Por favor, selecione um serviço válido.');
+    const handleBuyClick = async () => {
+        if (!link.trim() || !selectedService) {
+            alert('Por favor, preencha todos os campos obrigatórios.');
             return;
         }
 
-        let message;
+        setIsSubmitting(true);
+        let orderDetails = {};
+        let whatsappMessage;
 
         if (isCommentService) {
             if (commentCount < (selectedService.min || 10)) {
                 alert(`Por favor, insira pelo menos ${selectedService.min || 10} comentários.`);
+                setIsSubmitting(false);
                 return;
             }
-            const commentsList = comments.split('\n').filter(line => line.trim() !== '').join(', ');
-            message = `Olá! Gostaria de fazer um pedido na Engaja+:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Link: ${link}\n\n*Comentários:*\n${commentsList}`;
+            const commentsList = comments.split('\n').filter(line => line.trim() !== '').join('\n');
+            orderDetails = {
+                platform: selectedSocial,
+                service: selectedService.name,
+                link,
+                comments: commentsList,
+            };
+            whatsappMessage = `Olá! Gostaria de fazer um pedido na Engaja+:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Link: ${link}\n\n*Comentários:*\n${commentsList}`;
+
         } else {
-            message = `Olá! Gostaria de fazer um pedido na Engaja+:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Quantidade: *${quantity.toLocaleString('pt-BR')}*\n- Link: ${link}`;
+            orderDetails = {
+                platform: selectedSocial,
+                service: selectedService.name,
+                link,
+                quantity,
+            };
+            whatsappMessage = `Olá! Gostaria de fazer um pedido na Engaja+:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Quantidade: *${quantity.toLocaleString('pt-BR')}*\n- Link: ${link}`;
         }
-        
-        const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/818075997250?text=${encodedMessage}`;
-        
-        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
+        try {
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderDetails),
+            });
+
+            const data = await response.json();
+
+            if (!data.success || !data.orderId) {
+                throw new Error(data.message || 'Não foi possível criar o pedido.');
+            }
+
+            // Add Order ID to the message
+            const finalMessage = `${whatsappMessage}\n\n*ID do Pedido: ${data.orderId}*`;
+            const encodedMessage = encodeURIComponent(finalMessage);
+            const whatsappUrl = `https://wa.me/818075997250?text=${encodedMessage}`;
+            
+            window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
+        } catch (error) {
+            console.error('Failed to create order:', error);
+            alert('Ocorreu um erro ao criar seu pedido. Por favor, tente novamente ou entre em contato com o suporte.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const handleCustomRequestSubmit = () => {
@@ -188,6 +223,7 @@ export const OrderSection: React.FC = () => {
     };
 
     const getButtonText = () => {
+        if (isSubmitting) return 'Processando...';
         if (!selectedService) return 'Escolha um Serviço';
         if (isCommentService) {
             return `Comprar ${commentCount} Comentários`;
@@ -359,8 +395,8 @@ export const OrderSection: React.FC = () => {
                             
                             {selectedService && (
                             <div className="text-center pt-4">
-                                <button onClick={handleBuyClick} className="w-full md:w-auto bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-                                  disabled={!selectedService || !link.trim() || (isCommentService && commentCount < (selectedService.min || 10))}
+                                <button onClick={handleBuyClick} className="w-full md:w-auto bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40 disabled:opacity-50 disabled:cursor-wait disabled:scale-100"
+                                  disabled={isSubmitting || !selectedService || !link.trim() || (isCommentService && commentCount < (selectedService.min || 10))}
                                 >
                                    {getButtonText()}
                                 </button>
