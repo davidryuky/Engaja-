@@ -16,9 +16,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setError('');
     setIsLoading(true);
 
+    // Assume-se que em produção, o backend estará disponível em /api
+    // Em desenvolvimento local, pode ser necessário um proxy ou a URL completa (ex: http://localhost:3001/api/login)
+    const apiUrl = '/api/login';
+
     try {
-      // Faz a chamada para a API de backend que criamos
-      const response = await fetch('/api/login', {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,24 +29,30 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         body: JSON.stringify({ username, password }),
       });
 
+      // Primeiro, verifica se a resposta da rede foi bem-sucedida (status 2xx, 4xx, 5xx)
+      if (!response.ok) {
+        // Tenta pegar a mensagem de erro do corpo da resposta, se houver
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `Erro: ${response.statusText}`);
+      }
+
       const data = await response.json();
 
-      // Se a resposta for bem-sucedida e o backend confirmar o login
-      if (response.ok && data.success) {
+      // Agora, verifica a lógica de sucesso da nossa API
+      if (data.success) {
         onLoginSuccess(rememberMe);
       } else {
-        // Caso contrário, mostra a mensagem de erro vinda do backend
-        setError(data.message || 'Ocorreu um erro. Tente novamente.');
-        setIsLoading(false);
+        // Isso cobre casos onde a resposta é 200 OK, mas a API retorna { success: false }
+        setError(data.message || 'Ocorreu um erro inesperado.');
       }
-    } catch (err) {
-      // Trata erros de rede (ex: API fora do ar)
-      console.error('Login request failed:', err);
-      setError('Falha na comunicação com o servidor. Verifique sua conexão.');
+    } catch (err: any) {
+      // Captura erros de rede ou o erro lançado acima
+      console.error('Falha no login:', err);
+      setError(err.message || 'Falha na comunicação com o servidor.');
+    } finally {
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="bg-brand-dark min-h-screen flex items-center justify-center font-sans p-4">
