@@ -34,7 +34,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       }
     } catch (err) {
       console.error('Login request failed:', err);
-      setError('Falha na comunicação com o servidor.');
+      setError('Falha na comunicação com o servidor. Verifique sua conexão ou tente mais tarde.');
     } finally {
       setIsLoading(false);
     }
@@ -91,14 +91,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 <span className="ml-2">Lembrar-me</span>
               </label>
             </div>
-            {error && <p className="text-red-500 text-xs italic mb-4 text-center">{error}</p>}
+            {error && <p className="text-red-500 text-sm italic mb-4 text-center">{error}</p>}
             <div className="flex items-center justify-between">
               <button
                 type="submit"
+                className="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-4 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-wait"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-4 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
               >
-                {isLoading ? 'Entrando...' : 'Entrar'}
+                {isLoading ? 'Verificando...' : 'Entrar'}
               </button>
             </div>
           </form>
