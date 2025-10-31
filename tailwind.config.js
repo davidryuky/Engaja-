@@ -2,7 +2,8 @@
 export default {
   content: [
     "./index.html",
-    "./**/*.{js,ts,jsx,tsx}",
+    "./{App,index}.tsx",
+    "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -12,7 +13,7 @@ export default {
       colors: {
         'brand-purple': '#8073f1',
         'brand-pink': '#e677af',
-        'brand-dark': '#120c1f',
+        'brand-dark': '#120c1f', // Darker background for more contrast
         'brand-dark-200': '#1e1433',
       },
       keyframes: {
@@ -24,7 +25,7 @@ export default {
           '0%, 100%': { 'background-position': '0% 50%' },
           '50%': { 'background-position': '100% 50%' },
         },
-          shine: {
+         shine: {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
@@ -34,7 +35,7 @@ export default {
         backgroundPulse: 'backgroundPulse 10s ease infinite',
         shine: 'shine 1.5s linear infinite',
       },
-    }
+    },
   },
   plugins: [],
 }

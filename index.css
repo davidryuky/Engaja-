@@ -42,7 +42,7 @@ html {
   margin-top: -9px; /* center thumb on track */
 }
 .custom-slider:focus::-webkit-slider-thumb {
-    box-shadow: 0 0 0 4px rgba(230, 119, 175, 0.5);
+   box-shadow: 0 0 0 4px rgba(230, 119, 175, 0.5);
 }
 .custom-slider::-moz-range-thumb {
   width: 20px;
@@ -54,5 +54,5 @@ html {
   transition: all 0.2s ease-in-out;
 }
 .custom-slider:focus::-moz-range-thumb {
-    box-shadow: 0 0 0 4px rgba(230, 119, 175, 0.5);
+   box-shadow: 0 0 0 4px rgba(230, 119, 175, 0.5);
 }

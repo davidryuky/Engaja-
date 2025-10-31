@@ -16,10 +16,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setError('');
     setIsLoading(true);
 
-    const apiUrl = '/api/login';
-
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,11 +30,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       if (response.ok && data.success) {
         onLoginSuccess(rememberMe);
       } else {
-        setError(data.message || 'Ocorreu um erro inesperado.');
+        setError(data.message || 'Ocorreu um erro. Tente novamente.');
       }
     } catch (err) {
-      console.error('Falha na comunicação com o backend:', err);
-      setError('Falha de comunicação. Verifique se o backend foi implantado e se as variáveis de ambiente estão corretas.');
+      console.error('Login request failed:', err);
+      setError('Falha na comunicação com o servidor.');
     } finally {
       setIsLoading(false);
     }
@@ -97,10 +95,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <div className="flex items-center justify-between">
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-4 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-wait"
                 disabled={isLoading}
+                className="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-4 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
               >
-                {isLoading ? 'Verificando...' : 'Entrar'}
+                {isLoading ? 'Entrando...' : 'Entrar'}
               </button>
             </div>
           </form>
