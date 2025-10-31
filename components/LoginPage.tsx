@@ -16,8 +16,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setError('');
     setIsLoading(true);
 
-    // Assume-se que em produção, o backend estará disponível em /api
-    // Em desenvolvimento local, pode ser necessário um proxy ou a URL completa (ex: http://localhost:3001/api/login)
     const apiUrl = '/api/login';
 
     try {
@@ -29,26 +27,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         body: JSON.stringify({ username, password }),
       });
 
-      // Primeiro, verifica se a resposta da rede foi bem-sucedida (status 2xx, 4xx, 5xx)
-      if (!response.ok) {
-        // Tenta pegar a mensagem de erro do corpo da resposta, se houver
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || `Erro: ${response.statusText}`);
-      }
-
       const data = await response.json();
 
-      // Agora, verifica a lógica de sucesso da nossa API
-      if (data.success) {
+      if (response.ok && data.success) {
         onLoginSuccess(rememberMe);
       } else {
-        // Isso cobre casos onde a resposta é 200 OK, mas a API retorna { success: false }
         setError(data.message || 'Ocorreu um erro inesperado.');
       }
-    } catch (err: any) {
-      // Captura erros de rede ou o erro lançado acima
-      console.error('Falha no login:', err);
-      setError(err.message || 'Falha na comunicação com o servidor.');
+    } catch (err) {
+      console.error('Falha na comunicação com o backend:', err);
+      setError('Falha de comunicação. Verifique se o backend foi implantado e se as variáveis de ambiente estão corretas.');
     } finally {
       setIsLoading(false);
     }
