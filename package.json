@@ -1,12 +1,10 @@
 {
-  "name": "engajaplus-social-deploy",
+  "name": "engaja-plus-backend",
   "version": "1.0.0",
-  "description": "Backend services for Engaja+ application.",
-  "main": "api/login.js",
-  "author": "Engaja+",
-  "license": "ISC",
+  "private": true,
+  "type": "module",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "mysql2": "^3.10.0"
+    "bcrypt": "^5.1.1",
+    "mysql2": "^3.10.1"
   }
 }

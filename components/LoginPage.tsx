@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 interface LoginPageProps {
@@ -18,7 +17,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Faz a requisição para o backend Node.js
+      // Faz a chamada para a API de backend que criamos
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
@@ -26,21 +25,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         },
         body: JSON.stringify({ username, password }),
       });
-      
-      const result = await response.json();
 
-      if (response.ok && result.success) {
+      const data = await response.json();
+
+      // Se a resposta for bem-sucedida e o backend confirmar o login
+      if (response.ok && data.success) {
         onLoginSuccess(rememberMe);
       } else {
-        setError(result.message || 'Usuário ou senha inválidos.');
+        // Caso contrário, mostra a mensagem de erro vinda do backend
+        setError(data.message || 'Ocorreu um erro. Tente novamente.');
+        setIsLoading(false);
       }
     } catch (err) {
-      console.error("Login failed:", err);
-      setError('Falha ao conectar ao servidor. Tente novamente mais tarde.');
-    } finally {
+      // Trata erros de rede (ex: API fora do ar)
+      console.error('Login request failed:', err);
+      setError('Falha na comunicação com o servidor. Verifique sua conexão.');
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="bg-brand-dark min-h-screen flex items-center justify-center font-sans p-4">
@@ -100,7 +103,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 className="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-4 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-wait"
                 disabled={isLoading}
               >
-                {isLoading ? 'Entrando...' : 'Entrar'}
+                {isLoading ? 'Verificando...' : 'Entrar'}
               </button>
             </div>
           </form>
