@@ -10,15 +10,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Hardcoded credentials as per the request
-    if (username === 'May' && password === 'MAY@@umi') {
-      setError('');
-      onLoginSuccess(rememberMe);
-    } else {
-      setError('Usuário ou senha inválidos.');
+    setError('');
+    setIsLoading(true);
+
+    try {
+      // Faz a requisição para o backend Node.js
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        onLoginSuccess(rememberMe);
+      } else {
+        setError(result.message || 'Usuário ou senha inválidos.');
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError('Falha ao conectar ao servidor. Tente novamente mais tarde.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -44,6 +64,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-3 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="mb-6">
@@ -57,6 +78,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-3 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
                 required
+                disabled={isLoading}
               />
             </div>
              <div className="mb-6">
@@ -66,6 +88,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="form-checkbox h-5 w-5 bg-brand-dark border-brand-purple/50 rounded text-brand-pink focus:ring-brand-pink"
+                  disabled={isLoading}
                 />
                 <span className="ml-2">Lembrar-me</span>
               </label>
@@ -74,9 +97,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <div className="flex items-center justify-between">
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-4 rounded-full transition-all duration-300 transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-4 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-wait"
+                disabled={isLoading}
               >
-                Entrar
+                {isLoading ? 'Entrando...' : 'Entrar'}
               </button>
             </div>
           </form>

@@ -1,22 +1,12 @@
 {
-  "name": "engaja+-social-deploy",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
+  "name": "engajaplus-social-deploy",
+  "version": "1.0.0",
+  "description": "Backend services for Engaja+ application.",
+  "main": "api/login.js",
+  "author": "Engaja+",
+  "license": "ISC",
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "lucide-react": "^0.546.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "bcryptjs": "^2.4.3",
+    "mysql2": "^3.10.0"
   }
 }
