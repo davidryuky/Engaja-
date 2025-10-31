@@ -1,135 +1,150 @@
-
-import React from 'react';
-import { LogOut, DollarSign, ShoppingCart, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 interface DashboardPageProps {
   onLogout: () => void;
 }
 
-// Mock data for the orders table
-const mockOrders = [
-  { id: 'ORD-001', customer: 'Julia S.', service: '1.000 Seguidores Instagram', amount: 'R$ 49,90', status: 'Concluído', date: '2023-10-26' },
-  { id: 'ORD-002', customer: 'Marcos P.', service: '5.000 Curtidas TikTok', amount: 'R$ 99,90', status: 'Em Progresso', date: '2023-10-26' },
-  { id: 'ORD-003', customer: 'Loja Belle', service: '10.000 Visualizações YouTube', amount: 'R$ 79,90', status: 'Concluído', date: '2023-10-25' },
-  { id: 'ORD-004', customer: 'Ana B.', service: '500 Seguidores Twitter', amount: 'R$ 29,90', status: 'Pendente', date: '2023-10-25' },
-  { id: 'ORD-005', customer: 'Carlos P.', service: '2.500 Seguidores Instagram', amount: 'R$ 129,90', status: 'Concluído', date: '2023-10-24' },
-];
-
-const StatCard: React.FC<{ title: string; value: string; icon: React.ReactNode; change?: string; changeType?: 'increase' | 'decrease' }> = ({ title, value, icon, change, changeType }) => (
-    <div className="bg-brand-dark-200 p-6 rounded-xl border border-brand-purple/30">
-        <div className="flex items-center justify-between">
-            <div>
-                <p className="text-sm text-slate-400">{title}</p>
-                <p className="text-2xl font-bold text-white">{value}</p>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-brand-purple to-brand-pink rounded-full text-white">
-                {icon}
-            </div>
-        </div>
-        {change && (
-            <p className={`text-xs mt-2 ${changeType === 'increase' ? 'text-green-400' : 'text-red-400'}`}>
-                {change} desde o último mês
-            </p>
-        )}
-    </div>
-);
+interface Order {
+  id: number;
+  order_text: string;
+  created_at: string;
+}
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [newOrderText, setNewOrderText] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-    const getStatusClass = (status: string) => {
-        switch (status) {
-            case 'Concluído': return 'bg-green-500/20 text-green-400';
-            case 'Em Progresso': return 'bg-yellow-500/20 text-yellow-400';
-            case 'Pendente': return 'bg-orange-500/20 text-orange-400';
-            default: return 'bg-slate-500/20 text-slate-400';
-        }
-    };
+  // Function to fetch orders
+  const fetchOrders = async () => {
+    try {
+      setError('');
+      setIsLoading(true);
+      const response = await fetch('/api/orders');
+      const data = await response.json();
+      if (data.success) {
+        setOrders(data.orders);
+      } else {
+        throw new Error(data.message || 'Falha ao buscar pedidos.');
+      }
+    } catch (err) {
+      setError('Não foi possível carregar os pedidos. Verifique a conexão com o servidor.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fetch orders on component mount
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
-    return (
-        <div className="bg-brand-dark min-h-screen text-slate-100 font-sans">
-            {/* Header */}
-            <header className="bg-brand-dark-200 border-b border-brand-purple/30 sticky top-0 z-10">
-                <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-12" />
-                        <h1 className="text-xl font-bold text-white hidden md:block">Dashboard</h1>
-                    </div>
-                    <button
-                        onClick={onLogout}
-                        className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-slate-200 font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Sair
-                    </button>
-                </div>
+  // Handle form submission to add a new order
+  const handleAddOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newOrderText.trim()) {
+      setError('O campo do pedido não pode estar vazio.');
+      return;
+    }
+
+    try {
+      setError('');
+      setIsSubmitting(true);
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderText: newOrderText }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setNewOrderText('');
+        await fetchOrders(); // Refresh the list
+      } else {
+        throw new Error(data.message || 'Falha ao adicionar o pedido.');
+      }
+    } catch (err) {
+        setError('Não foi possível salvar o pedido. Tente novamente.');
+        console.error(err);
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-brand-dark min-h-screen font-sans p-4 md:p-8 text-white">
+        <div className="max-w-4xl mx-auto">
+            <header className="flex justify-between items-center mb-12">
+                <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-16" />
+                <button
+                    onClick={onLogout}
+                    className="bg-gradient-to-r from-brand-pink to-brand-purple hover:from-brand-purple hover:to-brand-pink text-white font-bold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105 text-sm"
+                >
+                    Sair
+                </button>
             </header>
 
-            {/* Main Content */}
-            <main className="container mx-auto p-6">
-                <h2 className="text-2xl font-bold text-white mb-6">Visão Geral</h2>
+            <main>
+                <h1 className="text-4xl font-bold mb-2">Painel de Controle</h1>
+                <p className="text-lg text-slate-300 mb-10">Bem-vindo, Administrador!</p>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <StatCard 
-                        title="Faturamento Total (Mês)" 
-                        value="R$ 3.520,70" 
-                        icon={<DollarSign className="w-6 h-6"/>}
-                        change="+12.5%"
-                        changeType="increase"
-                    />
-                    <StatCard 
-                        title="Pedidos (Mês)" 
-                        value="42" 
-                        icon={<ShoppingCart className="w-6 h-6"/>}
-                        change="+5"
-                        changeType="increase"
-                    />
-                     <StatCard 
-                        title="Novos Clientes (Mês)" 
-                        value="18" 
-                        icon={<Users className="w-6 h-6"/>}
-                        change="-2"
-                        changeType="decrease"
-                    />
-                </div>
-                
-                {/* Recent Orders Table */}
-                <div>
-                    <h3 className="text-xl font-bold text-white mb-4">Pedidos Recentes</h3>
-                    <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-xl overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left text-slate-300">
-                                <thead className="text-xs text-slate-400 uppercase bg-brand-dark">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3">ID Pedido</th>
-                                        <th scope="col" className="px-6 py-3">Cliente</th>
-                                        <th scope="col" className="px-6 py-3">Serviço</th>
-                                        <th scope="col" className="px-6 py-3">Valor</th>
-                                        <th scope="col" className="px-6 py-3">Status</th>
-                                        <th scope="col" className="px-6 py-3">Data</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {mockOrders.map(order => (
-                                        <tr key={order.id} className="border-t border-brand-purple/20 hover:bg-brand-dark/50 transition-colors">
-                                            <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap">{order.id}</th>
-                                            <td className="px-6 py-4">{order.customer}</td>
-                                            <td className="px-6 py-4">{order.service}</td>
-                                            <td className="px-6 py-4">{order.amount}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusClass(order.status)}`}>
-                                                    {order.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">{order.date}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                {/* Add Order Form */}
+                <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-2xl p-6 mb-12 shadow-lg">
+                    <h2 className="text-2xl font-semibold mb-4 text-brand-pink">Adicionar Novo Pedido</h2>
+                    <form onSubmit={handleAddOrder}>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <input
+                                type="text"
+                                value={newOrderText}
+                                onChange={(e) => setNewOrderText(e.target.value)}
+                                placeholder="Digite a descrição do pedido..."
+                                className="flex-grow w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-3 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
+                                disabled={isSubmitting}
+                            />
+                            <button
+                                type="submit"
+                                className="bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-wait"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Salvando...' : 'Salvar Pedido'}
+                            </button>
                         </div>
-                    </div>
+                    </form>
+                </div>
+
+                {/* Orders List */}
+                <div>
+                    <h2 className="text-2xl font-semibold mb-4 text-slate-200">Pedidos Feitos</h2>
+                    
+                    {isLoading ? (
+                        <p className="text-center text-slate-400 py-8">Carregando pedidos...</p>
+                    ) : (
+                        <>
+                          {error && <p className="text-red-500 bg-red-900/20 border border-red-500 rounded-lg p-4 text-center mb-4">{error}</p>}
+                          {orders.length > 0 ? (
+                              <div className="space-y-4">
+                                  {orders.map(order => (
+                                      <div key={order.id} className="bg-brand-dark-200 border border-brand-purple/20 rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                                          <p className="text-slate-300 break-words">{order.order_text}</p>
+                                          <span className="text-xs text-slate-500 flex-shrink-0 sm:ml-4 self-end sm:self-center">
+                                              {new Date(order.created_at).toLocaleString('pt-BR')}
+                                          </span>
+                                      </div>
+                                  ))}
+                              </div>
+                          ) : (
+                              <div className="text-center py-8 px-4 border-2 border-dashed border-brand-purple/20 rounded-lg">
+                                  <p className="text-slate-400">Nenhum pedido foi adicionado ainda.</p>
+                              </div>
+                          )}
+                        </>
+                    )}
                 </div>
             </main>
         </div>
-    );
+    </div>
+  );
 };
