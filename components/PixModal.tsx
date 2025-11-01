@@ -1,123 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { X as CloseIcon, Copy, Check } from 'lucide-react';
+import React from 'react';
+import { X as CloseIcon, Copy } from 'lucide-react';
 
-// --- TYPE DEFINITIONS ---
-interface Order {
-    id: number;
-    public_id: string;
-}
 interface PixModalProps {
   isOpen: boolean;
   onClose: () => void;
-  order: Order;
+  // pixKey?: string;
+  // qrCodeUrl?: string;
 }
 
-// --- PIX QR CODE GENERATION LOGIC ---
-// (Simplified CRC16 implementation for Pix)
-const crc16 = (payload: string): string => {
-  let crc = 0xFFFF;
-  for (let i = 0; i < payload.length; i++) {
-    crc ^= payload.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++) {
-      if ((crc & 0x8000) !== 0) {
-        crc = (crc << 1) ^ 0x1021;
-      } else {
-        crc <<= 1;
-      }
-    }
-  }
-  return ('0000' + (crc & 0xFFFF).toString(16).toUpperCase()).slice(-4);
-};
-
-const generatePixCode = (pixKey: string, amount: string, txid: string): string => {
-  const merchantName = "Engaja+";
-  const merchantCity = "SAO PAULO";
-
-  const formatValue = (id: string, value: string): string => {
-    const len = ('00' + value.length).slice(-2);
-    return id + len + value;
-  };
-  
-  const payloadAmount = parseFloat(amount.replace(',', '.')).toFixed(2);
-  
-  const payload = [
-    formatValue('00', '01'), // Payload Format Indicator
-    formatValue('26', 
-        formatValue('00', 'br.gov.bcb.pix') + // GUI
-        formatValue('01', pixKey) // Chave PIX
-    ),
-    formatValue('52', '0000'), // Merchant Category Code
-    formatValue('53', '986'), // Transaction Currency (BRL)
-    formatValue('54', payloadAmount), // Amount
-    formatValue('58', 'BR'), // Country Code
-    formatValue('59', merchantName), // Merchant Name
-    formatValue('60', merchantCity), // Merchant City
-    formatValue('62', formatValue('05', txid.replace(/[^a-zA-Z0-9]/g, ''))), // Transaction ID
-  ].join('');
-
-  const finalPayload = payload + '6304'; // Additional Data Field Template + CRC16 ID
-  const crc = crc16(finalPayload);
-  
-  return finalPayload + crc;
-};
-
-
-// --- COMPONENT ---
-
-export const PixModal: React.FC<PixModalProps> = ({ isOpen, onClose, order }) => {
-  const [pixKey, setPixKey] = useState('');
-  const [amount, setAmount] = useState('');
-  const [generatedPix, setGeneratedPix] = useState('');
-  const [hasCopied, setHasCopied] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-        try {
-            const savedKey = localStorage.getItem('engaja_plus_pix_key');
-            if (savedKey) {
-                setPixKey(savedKey);
-            }
-        } catch (error) {
-            console.error("Could not access localStorage:", error);
-        }
-        setGeneratedPix('');
-        setAmount('');
-        setHasCopied(false);
-    }
-  }, [isOpen]);
-
-  const handleGenerate = () => {
-    if (!pixKey.trim() || !amount.trim()) {
-        alert('Por favor, preencha a Chave Pix e o Valor.');
-        return;
-    }
-    try {
-        localStorage.setItem('engaja_plus_pix_key', pixKey);
-    } catch (error) {
-        console.error("Could not save to localStorage:", error);
-    }
-
-    const code = generatePixCode(pixKey, amount, order.public_id);
-    setGeneratedPix(code);
-  };
-  
-  const handleCopy = () => {
-      navigator.clipboard.writeText(generatedPix);
-      setHasCopied(true);
-      setTimeout(() => setHasCopied(false), 2000);
-  };
-
+export const PixModal: React.FC<PixModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) {
     return null;
   }
 
+  const pixKey = "chave-pix-aleatoria@email.com"; // Placeholder key
+  const qrCodeUrl = "https://i.postimg.cc/d1AgC0yY/qr-code-placeholder.png"; // Placeholder QR code image
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(pixKey).then(() => {
+      alert('Chave PIX copiada para a área de transferência!');
+    }, () => {
+      alert('Falha ao copiar a chave PIX.');
+    });
+  };
+
   return (
     <div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[70] p-4"
       onClick={onClose}
     >
       <div
-        className="bg-brand-dark-200 border border-brand-purple/50 rounded-2xl shadow-2xl shadow-brand-purple/20 p-8 max-w-lg w-full text-center relative animate-fadeInUp"
+        className="bg-brand-dark-200 border border-brand-purple/50 rounded-2xl shadow-2xl shadow-brand-purple/20 p-8 max-w-sm w-full text-center relative animate-fadeInUp"
         onClick={(e) => e.stopPropagation()}
         style={{ animationDuration: '0.5s' }}
       >
@@ -129,64 +42,37 @@ export const PixModal: React.FC<PixModalProps> = ({ isOpen, onClose, order }) =>
           <CloseIcon className="h-6 w-6" />
         </button>
 
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Gerar Cobrança Pix
+        <h2 className="text-2xl font-bold text-white mb-4">
+          Pagamento via <span className="text-brand-pink">PIX</span>
         </h2>
-        <p className="text-sm text-brand-pink font-mono mb-6">Pedido: {order.public_id}</p>
-
-        {!generatedPix ? (
-             <div className="space-y-4 text-left">
-                <div>
-                    <label htmlFor="pixKey" className="block text-slate-300 text-sm font-bold mb-2">Sua Chave Pix</label>
-                    <input
-                        id="pixKey"
-                        type="text"
-                        value={pixKey}
-                        onChange={(e) => setPixKey(e.target.value)}
-                        placeholder="CPF, CNPJ, E-mail, Telefone ou Chave Aleatória"
-                        className="w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-3 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
-                    />
-                </div>
-                 <div>
-                    <label htmlFor="amount" className="block text-slate-300 text-sm font-bold mb-2">Valor (R$)</label>
-                    <input
-                        id="amount"
-                        type="text"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value.replace(/[^0-9,.]/g, ''))}
-                        placeholder="Ex: 49,90"
-                        className="w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-3 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
-                    />
-                </div>
-                <button 
-                    onClick={handleGenerate}
-                    className="w-full mt-4 bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-3 px-4 rounded-full transition-all duration-300 transform hover:scale-105"
-                >
-                    Gerar Pix Copia e Cola
+        <p className="text-slate-300 mb-6 text-sm">
+          Aponte a câmera do seu celular para o QR Code ou use a chave "copia e cola".
+        </p>
+        
+        <div className="flex justify-center mb-6">
+            <div className="p-4 bg-white rounded-lg">
+                <img src={qrCodeUrl} alt="QR Code PIX" className="w-48 h-48" />
+            </div>
+        </div>
+        
+        <div className="mb-8">
+            <label className="text-xs text-slate-400">Chave PIX (Copia e Cola)</label>
+            <div className="mt-2 flex items-center bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-3">
+                <input
+                    type="text"
+                    value={pixKey}
+                    readOnly
+                    className="flex-grow bg-transparent text-white text-sm outline-none font-mono"
+                />
+                <button onClick={handleCopy} className="ml-2 text-slate-400 hover:text-brand-pink" title="Copiar chave">
+                    <Copy className="w-5 h-5" />
                 </button>
             </div>
-        ) : (
-            <div className="space-y-4">
-                <p className="text-slate-300">Pix gerado com sucesso! Envie o código abaixo para o cliente.</p>
-                <div className="bg-brand-dark p-4 rounded-lg border border-brand-purple/30 text-left">
-                    <p className="text-white break-all text-xs font-mono">{generatedPix}</p>
-                </div>
-                <div className="flex gap-4">
-                    <button
-                        onClick={handleCopy}
-                        className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-full transition-colors duration-300"
-                    >
-                        {hasCopied ? <><Check className="w-5 h-5" /> Copiado!</> : <><Copy className="w-5 h-5" /> Copiar Código</>}
-                    </button>
-                     <button
-                        onClick={() => setGeneratedPix('')}
-                        className="flex-1 bg-brand-dark-200 hover:bg-opacity-80 border border-brand-purple/50 text-white font-semibold py-3 px-4 rounded-full transition-colors duration-300"
-                    >
-                        Gerar Novo
-                    </button>
-                </div>
-            </div>
-        )}
+        </div>
+        
+        <p className="text-xs text-slate-500">
+          Após o pagamento, o status do seu pedido será atualizado automaticamente.
+        </p>
       </div>
     </div>
   );
