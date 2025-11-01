@@ -25,10 +25,11 @@ function generatePublicId() {
 }
 
 
-// Function to initialize the database (create table if not exists)
+// Function to initialize the database (create table and ensure columns exist)
 async function initializeDatabase() {
     const connection = await pool.getConnection();
     try {
+        // Create the table if it doesn't exist
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS orders (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,10 +42,21 @@ async function initializeDatabase() {
                 payment_status ENUM('Aguardando Pagamento', 'Pago') NOT NULL DEFAULT 'Aguardando Pagamento',
                 progress_status ENUM('Parado', 'Iniciado') NOT NULL DEFAULT 'Parado',
                 completion_status ENUM('Incompleto', 'Concluido') NOT NULL DEFAULT 'Incompleto',
-                notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Check if the 'notes' column exists and add it if it doesn't
+        // This makes the schema migration robust
+        const [columns] = await connection.execute(
+            `SHOW COLUMNS FROM orders LIKE 'notes'`
+        );
+        if (columns.length === 0) {
+            await connection.execute(
+                `ALTER TABLE orders ADD COLUMN notes TEXT`
+            );
+        }
+
     } finally {
         connection.release();
     }
