@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode } from 'lucide-react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye } from 'lucide-react';
 import { PixModal } from './PixModal';
+import { OrderDetailsModal } from './OrderDetailsModal'; // Import the new modal
 
 // --- TYPE DEFINITIONS ---
-interface Order {
+export interface Order { // Exporting for use in other components
     id: number;
     public_id: string;
     platform: string;
@@ -100,9 +101,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalOrders, setTotalOrders] = useState(0);
 
-    // Pix Modal State
+    // Modal States
     const [isPixModalOpen, setIsPixModalOpen] = useState(false);
     const [selectedOrderForPix, setSelectedOrderForPix] = useState<Order | null>(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+
 
     const fetchOrders = useCallback(async (page: number) => {
         setIsLoading(true);
@@ -180,6 +184,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         setIsPixModalOpen(true);
     };
 
+    const handleOpenDetailsModal = (order: Order) => {
+        setSelectedOrderForDetails(order);
+        setIsDetailsModalOpen(true);
+    };
+
+
     return (
         <>
             <div className="bg-brand-dark min-h-screen text-slate-100 font-sans">
@@ -226,8 +236,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                 <thead className="text-xs text-slate-400 uppercase bg-brand-dark">
                                     <tr>
                                         <th scope="col" className="px-6 py-3">ID Pedido</th>
-                                        <th scope="col" className="px-6 py-3">Detalhes</th>
-                                        <th scope="col" className="px-6 py-3">Link</th>
+                                        <th scope="col" className="px-6 py-3">Serviço</th>
                                         <th scope="col" className="px-6 py-3">Data</th>
                                         <th scope="col" className="px-6 py-3">Pagamento</th>
                                         <th scope="col" className="px-6 py-3">Progresso</th>
@@ -245,9 +254,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                                     {order.quantity ? `Qtd: ${order.quantity.toLocaleString('pt-BR')}` : 'Comentários'}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <a href={order.link} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline truncate max-w-xs block">{order.link}</a>
-                                            </td>
                                             <td className="px-6 py-4">{new Date(order.created_at).toLocaleString('pt-BR')}</td>
                                             <td className="px-6 py-4">
                                                  <StatusButton orderId={order.id} currentStatus={order.payment_status} statusType="payment_status" onUpdate={handleStatusUpdate} />
@@ -259,6 +265,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                                 <StatusButton orderId={order.id} currentStatus={order.completion_status} statusType="completion_status" onUpdate={handleStatusUpdate} />
                                             </td>
                                             <td className="px-6 py-4 flex items-center gap-2">
+                                                <button onClick={() => handleOpenDetailsModal(order)} className="text-slate-300 hover:text-white p-2 rounded-full hover:bg-slate-500/10" title="Visualizar Detalhes">
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
                                                 <button onClick={() => handleOpenPixModal(order)} className="text-cyan-400 hover:text-cyan-300 p-2 rounded-full hover:bg-cyan-500/10" title="Gerar PIX">
                                                     <QrCode className="w-4 h-4" />
                                                 </button>
@@ -304,6 +313,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     isOpen={isPixModalOpen}
                     onClose={() => setIsPixModalOpen(false)}
                     order={selectedOrderForPix}
+                />
+            )}
+             {isDetailsModalOpen && selectedOrderForDetails && (
+                <OrderDetailsModal
+                    isOpen={isDetailsModalOpen}
+                    onClose={() => setIsDetailsModalOpen(false)}
+                    order={selectedOrderForDetails}
                 />
             )}
         </>
