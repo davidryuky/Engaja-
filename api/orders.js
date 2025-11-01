@@ -1,5 +1,3 @@
-
-
 // api/orders.js
 
 const mysql = require('mysql2/promise');
@@ -190,16 +188,17 @@ module.exports = async (req, res) => {
                     const sql = `UPDATE orders SET ${statusType} = ? WHERE id = ?`;
                     await connection.execute(sql, [newStatus, orderId]);
                     return res.status(200).json({ success: true, message: 'Status do pedido atualizado com sucesso.' });
-                }
-                
+                } 
                 // Handle notes update
-                if (notes !== undefined) {
+                else if (notes !== undefined) {
                     const sql = `UPDATE orders SET notes = ? WHERE id = ?`;
                     await connection.execute(sql, [notes, orderId]);
                     return res.status(200).json({ success: true, message: 'Anotações salvas com sucesso.' });
                 }
-
-                return res.status(400).json({ success: false, message: 'Dados de atualização insuficientes.' });
+                // If neither condition is met
+                else {
+                    return res.status(400).json({ success: false, message: 'Dados de atualização insuficientes.' });
+                }
             }
 
 
