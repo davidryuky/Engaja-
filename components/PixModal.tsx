@@ -1,26 +1,26 @@
-import React from 'react';
-import { X as CloseIcon, Copy } from 'lucide-react';
+import React, { useState } from 'react';
+import { X as CloseIcon, Copy, QrCode } from 'lucide-react';
 
 interface PixModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // pixKey?: string;
-  // qrCodeUrl?: string;
 }
 
 export const PixModal: React.FC<PixModalProps> = ({ isOpen, onClose }) => {
+  const [isCopied, setIsCopied] = useState(false);
+  const pixKey = "00020126360014br.gov.bcb.pix0114+5511999999999520400005303986540510.005802BR5913NOME DO LOJISTA6009SAO PAULO62070503***6304E2A3"; // Example PIX key
+
   if (!isOpen) {
     return null;
   }
 
-  const pixKey = "chave-pix-aleatoria@email.com"; // Placeholder key
-  const qrCodeUrl = "https://i.postimg.cc/d1AgC0yY/qr-code-placeholder.png"; // Placeholder QR code image
-
   const handleCopy = () => {
     navigator.clipboard.writeText(pixKey).then(() => {
-      alert('Chave PIX copiada para a área de transferência!');
-    }, () => {
-      alert('Falha ao copiar a chave PIX.');
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+    }).catch(err => {
+      console.error("Failed to copy PIX key:", err);
+      alert("Não foi possível copiar a chave PIX.");
     });
   };
 
@@ -45,34 +45,34 @@ export const PixModal: React.FC<PixModalProps> = ({ isOpen, onClose }) => {
         <h2 className="text-2xl font-bold text-white mb-4">
           Pagamento via <span className="text-brand-pink">PIX</span>
         </h2>
-        <p className="text-slate-300 mb-6 text-sm">
-          Aponte a câmera do seu celular para o QR Code ou use a chave "copia e cola".
+
+        <p className="text-slate-300 mb-6">
+          Escaneie o QR Code ou use o Pix Copia e Cola para finalizar seu pagamento.
         </p>
         
-        <div className="flex justify-center mb-6">
-            <div className="p-4 bg-white rounded-lg">
-                <img src={qrCodeUrl} alt="QR Code PIX" className="w-48 h-48" />
+        <div className="bg-white p-4 rounded-lg inline-block mb-6">
+            {/* Placeholder for QR Code */}
+            <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-gray-500">
+                <QrCode className="w-24 h-24" />
             </div>
         </div>
-        
-        <div className="mb-8">
-            <label className="text-xs text-slate-400">Chave PIX (Copia e Cola)</label>
-            <div className="mt-2 flex items-center bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-3">
-                <input
-                    type="text"
-                    value={pixKey}
-                    readOnly
-                    className="flex-grow bg-transparent text-white text-sm outline-none font-mono"
-                />
-                <button onClick={handleCopy} className="ml-2 text-slate-400 hover:text-brand-pink" title="Copiar chave">
-                    <Copy className="w-5 h-5" />
-                </button>
-            </div>
+
+        <div className="relative">
+          <input
+            type="text"
+            value={pixKey}
+            readOnly
+            className="w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-3 pr-28 text-slate-400 text-sm truncate"
+          />
+          <button
+            onClick={handleCopy}
+            className="absolute top-1/2 right-2 -translate-y-1/2 bg-brand-purple hover:bg-opacity-80 text-white font-semibold py-1.5 px-3 rounded-md text-xs transition-all duration-300 flex items-center gap-1.5"
+          >
+            <Copy className="w-4 h-4" />
+            {isCopied ? 'Copiado!' : 'Copiar'}
+          </button>
         </div>
-        
-        <p className="text-xs text-slate-500">
-          Após o pagamento, o status do seu pedido será atualizado automaticamente.
-        </p>
+
       </div>
     </div>
   );

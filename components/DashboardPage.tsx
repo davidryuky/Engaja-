@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FinancialSection } from './FinancialSection';
 import { OrderDetailsModal } from './OrderDetailsModal';
 import { PixModal } from './PixModal';
-import { LogOut, RefreshCw, MoreVertical, Eye, CheckCircle, XCircle, DollarSign } from 'lucide-react';
+import { LogOut, Search, Eye, Edit, Copy, CheckCircle, Clock, XCircle } from 'lucide-react';
 
-// Define the Order type based on the database schema
+// Define and export the Order type so other components can use it
 export interface Order {
   id: number;
   public_id: string;
@@ -17,233 +17,223 @@ export interface Order {
   created_at: string;
 }
 
-const statusStyles = {
-    'Aguardando Pagamento': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    'Pago': 'bg-green-500/20 text-green-400 border-green-500/30',
-    'Cancelado': 'bg-red-500/20 text-red-400 border-red-500/30',
-};
+interface DashboardPageProps {
+  onLogout: () => void;
+}
 
-const DropdownMenu: React.FC<{ order: Order; onUpdate: (id: number, status: Order['payment_status']) => void; onShowPix: () => void; }> = ({ order, onUpdate, onShowPix }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const menuRef = React.useRef<HTMLDivElement>(null);
+export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // State for modals
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
+  
+  // State for filtering and searching
+  const [filterStatus, setFilterStatus] = useState('Todos');
+  const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    return (
-        <div className="relative" ref={menuRef}>
-            <button onClick={() => setIsOpen(!isOpen)} className="p-2 rounded-full hover:bg-brand-dark-200 transition-colors">
-                <MoreVertical className="w-5 h-5" />
-            </button>
-            {isOpen && (
-                <div 
-                    className="absolute right-0 mt-2 w-56 bg-brand-dark-200 border border-brand-purple/50 rounded-lg shadow-xl z-10 animate-fadeInUp"
-                    style={{ animationDuration: '0.2s' }}
-                >
-                    <div className="py-1">
-                        {order.payment_status === 'Aguardando Pagamento' && (
-                            <button onClick={() => { onUpdate(order.id, 'Pago'); setIsOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-slate-200 hover:bg-brand-purple/30">
-                                <CheckCircle className="w-4 h-4 text-green-400" /> Marcar como Pago
-                            </button>
-                        )}
-                        {order.payment_status !== 'Cancelado' && (
-                           <button onClick={() => { onUpdate(order.id, 'Cancelado'); setIsOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-slate-200 hover:bg-brand-purple/30">
-                                <XCircle className="w-4 h-4 text-red-400" /> Cancelar Pedido
-                            </button>
-                        )}
-                         <button onClick={() => { onShowPix(); setIsOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-slate-200 hover:bg-brand-purple/30">
-                            <DollarSign className="w-4 h-4 text-cyan-400" /> Ver Dados PIX
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-
-export const DashboardPage: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-    const [isPixModalOpen, setIsPixModalOpen] = useState(false);
-    const [filter, setFilter] = useState('Todos');
-
-    const fetchOrders = useCallback(async () => {
-        setIsLoading(true);
-        setError('');
-        try {
-            const response = await fetch('/api/orders');
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
-                 throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.success) {
-                setOrders(data.orders);
-            } else {
-                throw new Error(data.message || 'Falha ao buscar pedidos.');
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Ocorreu um erro ao conectar com a API.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchOrders();
-    }, [fetchOrders]);
-
-    const handleUpdateStatus = async (id: number, status: Order['payment_status']) => {
-        // Optimistic update
-        const originalOrders = [...orders];
-        setOrders(prevOrders => prevOrders.map(o => o.id === id ? { ...o, payment_status: status } : o));
-
-        try {
-            const response = await fetch('/api/orders', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, payment_status: status }),
-            });
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.message || 'Falha ao atualizar status.');
-            }
-            // If successful, the optimistic update is confirmed. We can refetch to be sure.
-            fetchOrders(); 
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Ocorreu um erro ao atualizar o pedido.');
-            // Revert on failure
-            setOrders(originalOrders);
-        }
-    };
-
-    const openDetailsModal = (order: Order) => {
-        setSelectedOrder(order);
-        setIsDetailsModalOpen(true);
-    };
-
-    const openPixModal = (order: Order) => {
-        setSelectedOrder(order);
-        setIsPixModalOpen(true);
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/orders');
+      const data = await response.json();
+      if (data.success) {
+        setOrders(data.orders);
+      } else {
+        throw new Error(data.message || 'Falha ao buscar pedidos.');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    const filteredOrders = orders.filter(order => {
-        if (filter === 'Todos') return true;
-        return order.payment_status === filter;
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+  
+  const handleUpdateStatus = async (orderId: number, newStatus: Order['payment_status']) => {
+    try {
+        const response = await fetch('/api/orders', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: orderId, payment_status: newStatus }),
+        });
+        const data = await response.json();
+        if (data.success) {
+            setOrders(prevOrders => 
+                prevOrders.map(order => 
+                    order.id === orderId ? { ...order, payment_status: newStatus } : order
+                )
+            );
+        } else {
+            throw new Error(data.message || 'Falha ao atualizar status.');
+        }
+    } catch (err) {
+        alert(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido.');
+    }
+  };
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailsModalOpen(true);
+  };
+  
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copiado para a área de transferência!');
+    }, (err) => {
+        console.error('Could not copy text: ', err);
+        alert('Falha ao copiar.');
     });
+  };
 
-    return (
-        <div className="bg-brand-dark min-h-screen text-slate-100 font-sans">
-            <header className="bg-brand-dark-200 border-b border-brand-purple/30 sticky top-0 z-20">
-                <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-12" />
-                        <h1 className="text-xl font-bold">Dashboard</h1>
-                    </div>
-                    <button onClick={onLogout} className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-slate-300 font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
-                        <LogOut className="w-5 h-5" />
-                        <span>Sair</span>
-                    </button>
-                </div>
-            </header>
-            
-            <main className="container mx-auto px-6 py-8">
-                <section className="mb-8">
-                    <h2 className="text-2xl font-bold mb-4">Visão Geral</h2>
-                    <FinancialSection />
-                </section>
+  const filteredOrders = useMemo(() => {
+    return orders
+      .filter(order => {
+        if (filterStatus === 'Todos') return true;
+        return order.payment_status === filterStatus;
+      })
+      .filter(order => {
+        const search = searchTerm.toLowerCase();
+        return (
+          order.public_id.toLowerCase().includes(search) ||
+          order.platform.toLowerCase().includes(search) ||
+          order.service.toLowerCase().includes(search) ||
+          order.link.toLowerCase().includes(search)
+        );
+      });
+  }, [orders, filterStatus, searchTerm]);
+  
+  const getStatusChip = (status: Order['payment_status']) => {
+    switch(status) {
+        case 'Pago':
+            return <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400"><CheckCircle className="w-3 h-3" />Pago</span>;
+        case 'Cancelado':
+            return <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400"><XCircle className="w-3 h-3" />Cancelado</span>;
+        case 'Aguardando Pagamento':
+        default:
+            return <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400"><Clock className="w-3 h-3" />Aguardando</span>;
+    }
+  };
 
-                <section>
-                    <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
-                        <h2 className="text-2xl font-bold">Pedidos Recentes</h2>
-                        <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-                           <div className="flex items-center gap-1 p-1 bg-brand-dark-200 border border-brand-purple/30 rounded-lg">
-                                {['Todos', 'Aguardando Pagamento', 'Pago', 'Cancelado'].map(status => (
-                                    <button 
-                                        key={status} 
-                                        onClick={() => setFilter(status)}
-                                        className={`px-2 py-1 text-xs sm:text-sm font-semibold rounded-md transition-colors ${filter === status ? 'bg-brand-purple text-white' : 'text-slate-300 hover:bg-brand-purple/30'}`}
-                                    >
-                                        {status}
-                                    </button>
-                                ))}
-                            </div>
-                            <button onClick={fetchOrders} disabled={isLoading} className="p-2 rounded-lg bg-brand-dark-200 border border-brand-purple/30 text-slate-300 hover:bg-brand-purple/30 transition-colors disabled:opacity-50 disabled:cursor-wait">
-                                <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-xl shadow-lg overflow-hidden">
-                        <div className="overflow-x-auto">
-                           <table className="w-full text-sm text-left">
-                                <thead className="bg-brand-dark text-xs text-slate-400 uppercase tracking-wider">
-                                    <tr>
-                                        <th className="px-6 py-3">ID Pedido</th>
-                                        <th className="px-6 py-3 hidden md:table-cell">Data</th>
-                                        <th className="px-6 py-3">Serviço</th>
-                                        <th className="px-6 py-3">Status</th>
-                                        <th className="px-6 py-3 text-right">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-brand-purple/20">
-                                    {isLoading ? (
-                                        <tr><td colSpan={5} className="text-center py-12">Carregando pedidos...</td></tr>
-                                    ) : error ? (
-                                        <tr><td colSpan={5} className="text-center py-12 text-red-400">{error}</td></tr>
-                                    ) : filteredOrders.length === 0 ? (
-                                         <tr><td colSpan={5} className="text-center py-12 text-slate-500">Nenhum pedido encontrado para este filtro.</td></tr>
-                                    ) : (
-                                        filteredOrders.map(order => (
-                                            <tr key={order.id} className="hover:bg-brand-dark transition-colors">
-                                                <td className="px-6 py-4 font-mono text-brand-pink whitespace-nowrap">{order.public_id}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">{new Date(order.created_at).toLocaleDateString('pt-BR')}</td>
-                                                <td className="px-6 py-4">{order.platform} - {order.service}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${statusStyles[order.payment_status]}`}>
-                                                        {order.payment_status.replace(' ', '\u00A0')}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 flex justify-end items-center gap-1">
-                                                    <button onClick={() => openDetailsModal(order)} className="p-2 rounded-full hover:bg-brand-dark text-slate-300 transition-colors" title="Ver detalhes">
-                                                        <Eye className="w-5 h-5" />
-                                                    </button>
-                                                    <DropdownMenu order={order} onUpdate={handleUpdateStatus} onShowPix={() => openPixModal(order)} />
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-            </main>
 
-            {isDetailsModalOpen && selectedOrder && (
-                <OrderDetailsModal 
-                    isOpen={isDetailsModalOpen}
-                    onClose={() => setIsDetailsModalOpen(false)}
-                    order={selectedOrder}
-                />
-            )}
-             {isPixModalOpen && (
-                <PixModal 
-                    isOpen={isPixModalOpen}
-                    onClose={() => setIsPixModalOpen(false)}
-                />
-            )}
+  return (
+    <div className="bg-brand-dark min-h-screen text-slate-100 font-sans">
+      <header className="bg-brand-dark-200 border-b border-brand-purple/30 p-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-12" />
+            <h1 className="text-xl font-bold hidden sm:block">Painel Administrativo</h1>
+          </div>
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-full text-sm transition-all duration-300"
+          >
+            <LogOut className="w-4 h-4" /> Sair
+          </button>
         </div>
-    );
+      </header>
+      
+      <main className="container mx-auto p-4 md:p-8">
+        <h2 className="text-3xl font-bold text-white mb-8">Visão Geral</h2>
+        <FinancialSection />
+
+        <div className="mt-12">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <h2 className="text-3xl font-bold text-white">Pedidos Recentes</h2>
+                <div className="flex items-center gap-4">
+                    <div className="relative">
+                        <input 
+                            type="text"
+                            placeholder="Buscar pedido..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full sm:w-64 bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-2 pl-10 focus:outline-none focus:border-brand-pink transition-colors duration-300"
+                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    </div>
+                     <select 
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-2.5 focus:outline-none focus:border-brand-pink transition-colors duration-300 appearance-none"
+                    >
+                        <option value="Todos">Todos Status</option>
+                        <option value="Aguardando Pagamento">Aguardando</option>
+                        <option value="Pago">Pago</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-2xl overflow-x-auto">
+                <table className="w-full text-left">
+                    <thead className="border-b border-brand-purple/30 text-xs text-slate-400 uppercase tracking-wider">
+                        <tr>
+                            <th className="p-4">ID</th>
+                            <th className="p-4">Data</th>
+                            <th className="p-4">Plataforma</th>
+                            <th className="p-4">Serviço</th>
+                            <th className="p-4">Status</th>
+                            <th className="p-4 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {isLoading ? (
+                            <tr><td colSpan={6} className="text-center p-8">Carregando pedidos...</td></tr>
+                        ) : error ? (
+                            <tr><td colSpan={6} className="text-center p-8 text-red-400">{error}</td></tr>
+                        ) : filteredOrders.length === 0 ? (
+                             <tr><td colSpan={6} className="text-center p-8">Nenhum pedido encontrado.</td></tr>
+                        ) : (
+                            filteredOrders.map(order => (
+                                <tr key={order.id} className="border-b border-brand-dark last:border-b-0 hover:bg-brand-dark/50 transition-colors">
+                                    <td className="p-4 font-mono text-brand-pink">{order.public_id}</td>
+                                    <td className="p-4 whitespace-nowrap">{new Date(order.created_at).toLocaleDateString('pt-BR')}</td>
+                                    <td className="p-4">{order.platform}</td>
+                                    <td className="p-4">{order.service}</td>
+                                    <td className="p-4">{getStatusChip(order.payment_status)}</td>
+                                    <td className="p-4">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button onClick={() => handleViewDetails(order)} className="p-2 text-slate-400 hover:text-white transition-colors" title="Ver Detalhes"><Eye className="w-5 h-5" /></button>
+                                            
+                                            {/* Dropdown for status change */}
+                                            <div className="relative group">
+                                                 <button className="p-2 text-slate-400 hover:text-white transition-colors" title="Alterar Status"><Edit className="w-5 h-5" /></button>
+                                                 <div className="absolute right-0 bottom-full mb-2 w-48 bg-brand-dark border border-brand-purple/50 rounded-lg shadow-lg z-10 hidden group-hover:block">
+                                                    <button onClick={() => handleUpdateStatus(order.id, 'Pago')} className="w-full text-left px-4 py-2 text-sm hover:bg-brand-purple/30">Marcar como Pago</button>
+                                                    <button onClick={() => handleUpdateStatus(order.id, 'Aguardando Pagamento')} className="w-full text-left px-4 py-2 text-sm hover:bg-brand-purple/30">Marcar como Aguardando</button>
+                                                    <button onClick={() => handleUpdateStatus(order.id, 'Cancelado')} className="w-full text-left px-4 py-2 text-sm hover:bg-brand-purple/30">Marcar como Cancelado</button>
+                                                 </div>
+                                            </div>
+
+                                            <button onClick={() => copyToClipboard(order.link)} className="p-2 text-slate-400 hover:text-white transition-colors" title="Copiar Link"><Copy className="w-5 h-5" /></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+      </main>
+      
+      {selectedOrder && (
+          <OrderDetailsModal 
+            isOpen={isDetailsModalOpen}
+            onClose={() => setIsDetailsModalOpen(false)}
+            order={selectedOrder}
+          />
+      )}
+
+      <PixModal isOpen={isPixModalOpen} onClose={() => setIsPixModalOpen(false)} />
+    </div>
+  );
 };
