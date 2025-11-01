@@ -84,21 +84,41 @@ module.exports = async (req, res) => {
         const connection = await pool.getConnection();
 
         try {
-            // --- GET: Fetch all orders for the dashboard with pagination ---
+            // --- GET: Fetch all orders for the dashboard with pagination and filtering ---
             if (req.method === 'GET') {
                 const page = parseInt(req.query.page, 10) || 1;
+                const { payment_status, progress_status, completion_status } = req.query;
+
                 const limit = 10;
                 const offset = (page - 1) * limit;
 
-                // First, get the total count of orders
-                const [[{ total }]] = await connection.execute('SELECT COUNT(*) as total FROM orders');
+                let whereClauses = [];
+                let queryParams = [];
+
+                if (payment_status && payment_status !== 'all') {
+                    whereClauses.push('payment_status = ?');
+                    queryParams.push(payment_status);
+                }
+                if (progress_status && progress_status !== 'all') {
+                    whereClauses.push('progress_status = ?');
+                    queryParams.push(progress_status);
+                }
+                if (completion_status && completion_status !== 'all') {
+                    whereClauses.push('completion_status = ?');
+                    queryParams.push(completion_status);
+                }
+
+                const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+                // Get the total count of filtered orders
+                const countSql = `SELECT COUNT(*) as total FROM orders ${whereString}`;
+                const [[{ total }]] = await connection.execute(countSql, queryParams);
                 const totalPages = Math.ceil(total / limit);
 
-                // Then, get the paginated orders
-                const [rows] = await connection.execute(
-                    'SELECT * FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?',
-                    [limit, offset]
-                );
+                // Get the paginated and filtered orders
+                const selectSql = `SELECT * FROM orders ${whereString} ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+                const [rows] = await connection.execute(selectSql, [...queryParams, limit, offset]);
+
 
                 return res.status(200).json({ 
                     success: true, 

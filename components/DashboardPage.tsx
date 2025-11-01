@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye } from 'lucide-react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter } from 'lucide-react';
 import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal'; // Import the new modal
 
@@ -66,6 +66,10 @@ const StatusButton: React.FC<{
     const nextIndex = (currentIndex + 1) % config.states.length;
     const nextStatus = config.states[nextIndex];
 
+    useEffect(() => {
+        setStatus(currentStatus);
+    }, [currentStatus]);
+
     const handleClick = async () => {
         setIsUpdating(true);
         try {
@@ -101,6 +105,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalOrders, setTotalOrders] = useState(0);
 
+    // Filter state
+    const [filters, setFilters] = useState({
+        payment_status: 'all',
+        progress_status: 'all',
+        completion_status: 'all',
+    });
+
     // Modal States
     const [isPixModalOpen, setIsPixModalOpen] = useState(false);
     const [selectedOrderForPix, setSelectedOrderForPix] = useState<Order | null>(null);
@@ -108,11 +119,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
 
 
-    const fetchOrders = useCallback(async (page: number) => {
+    const fetchOrders = useCallback(async (page: number, currentFilters: typeof filters) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/orders?page=${page}`);
+            const queryParams = new URLSearchParams({
+                page: String(page),
+                ...currentFilters
+            }).toString();
+            
+            const response = await fetch(`/api/orders?${queryParams}`);
             if (!response.ok) {
                 throw new Error('Falha ao buscar pedidos.');
             }
@@ -133,9 +149,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     }, []);
 
     useEffect(() => {
-        fetchOrders(currentPage);
-    }, [currentPage, fetchOrders]);
+        fetchOrders(currentPage, filters);
+    }, [currentPage, filters, fetchOrders]);
     
+     const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        setCurrentPage(1); // Reset to first page when filters change
+    };
+
     const handleStatusUpdate = async (orderId: number, statusType: StatusType, newStatus: string) => {
         try {
             const response = await fetch('/api/orders', {
@@ -153,7 +174,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         } catch (err) {
             console.error("Update failed:", err);
             alert('Não foi possível atualizar o pedido. A página será recarregada.');
-            fetchOrders(currentPage);
+            fetchOrders(currentPage, filters);
             throw err;
         }
     };
@@ -169,7 +190,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
 
                 const data = await response.json();
                 if (data.success) {
-                    fetchOrders(currentPage);
+                    fetchOrders(1, filters); // Refresh from page 1 after deletion
                 } else {
                     throw new Error(data.message || 'Falha ao apagar o pedido.');
                 }
@@ -208,11 +229,43 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                 </header>
 
                 <main className="p-4 md:p-8">
-                    <div className="mb-6 flex justify-between items-center">
+                    <div className="mb-6 flex justify-between items-center flex-wrap gap-4">
                         <h2 className="text-2xl font-bold">Gerenciamento de Pedidos ({totalOrders})</h2>
-                        <button onClick={() => fetchOrders(currentPage)} disabled={isLoading} className="text-slate-300 hover:text-white transition-colors">
+                        <button onClick={() => fetchOrders(currentPage, filters)} disabled={isLoading} className="text-slate-300 hover:text-white transition-colors p-2">
                             <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
                         </button>
+                    </div>
+
+                    {/* --- FILTERS --- */}
+                     <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 mb-6 flex flex-wrap items-center gap-4">
+                        <div className="flex items-center gap-2 text-slate-300">
+                           <Filter className="w-5 h-5" />
+                           <span className="font-semibold">Filtros:</span>
+                        </div>
+                        <div className="flex-grow">
+                             <label htmlFor="payment_status_filter" className="sr-only">Filtrar por Pagamento</label>
+                             <select name="payment_status" id="payment_status_filter" value={filters.payment_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full md:w-auto">
+                                <option value="all">Pagamento: Todos</option>
+                                <option value="Aguardando Pagamento">Aguardando Pagamento</option>
+                                <option value="Pago">Pago</option>
+                             </select>
+                        </div>
+                         <div className="flex-grow">
+                             <label htmlFor="progress_status_filter" className="sr-only">Filtrar por Progresso</label>
+                             <select name="progress_status" id="progress_status_filter" value={filters.progress_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full md:w-auto">
+                                <option value="all">Progresso: Todos</option>
+                                <option value="Parado">Parado</option>
+                                <option value="Iniciado">Iniciado</option>
+                             </select>
+                        </div>
+                         <div className="flex-grow">
+                            <label htmlFor="completion_status_filter" className="sr-only">Filtrar por Finalização</label>
+                             <select name="completion_status" id="completion_status_filter" value={filters.completion_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full md:w-auto">
+                                <option value="all">Finalização: Todos</option>
+                                <option value="Incompleto">Incompleto</option>
+                                <option value="Concluido">Concluído</option>
+                             </select>
+                        </div>
                     </div>
 
                     {error && (
@@ -229,7 +282,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                             </div>
                         ) : orders.length === 0 ? (
                              <div className="h-96 flex items-center justify-center text-slate-400">
-                                <p>Nenhum pedido encontrado.</p>
+                                <p>Nenhum pedido encontrado com os filtros atuais.</p>
                             </div>
                         ) : (
                             <table className="w-full text-sm text-left text-slate-300">
@@ -246,7 +299,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                 </thead>
                                 <tbody>
                                     {orders.map(order => (
-                                        <tr key={order.id} className="border-b border-brand-purple/20 hover:bg-brand-dark-200/50">
+                                        <tr key={order.id} className={`border-b border-brand-purple/20 transition-colors duration-300 ${order.completion_status === 'Concluido' ? 'bg-green-500/10 hover:bg-green-500/20' : 'hover:bg-brand-dark-200/50'}`}>
                                             <td className="px-6 py-4 font-mono font-bold text-brand-pink">{order.public_id}</td>
                                             <td className="px-6 py-4">
                                                 <div className="font-semibold">{order.platform} - {order.service}</div>
