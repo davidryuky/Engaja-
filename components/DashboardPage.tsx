@@ -242,7 +242,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                            <Filter className="w-5 h-5" />
                            <span className="font-semibold">Filtros:</span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                        <div className="flex flex-col sm:flex-row gap-4">
                              <div>
                                  <label htmlFor="payment_status_filter" className="sr-only">Filtrar por Pagamento</label>
                                  <select name="payment_status" id="payment_status_filter" value={filters.payment_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
