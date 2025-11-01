@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter } from 'lucide-react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText } from 'lucide-react';
 import { PixModal } from './PixModal';
-import { OrderDetailsModal } from './OrderDetailsModal'; // Import the new modal
+import { OrderDetailsModal } from './OrderDetailsModal';
+import { OrderNotesModal } from './OrderNotesModal'; // Import the new modal
 
 // --- TYPE DEFINITIONS ---
 export interface Order { // Exporting for use in other components
@@ -15,6 +16,7 @@ export interface Order { // Exporting for use in other components
     payment_status: 'Aguardando Pagamento' | 'Pago';
     progress_status: 'Parado' | 'Iniciado';
     completion_status: 'Incompleto' | 'Concluido';
+    notes: string | null;
     created_at: string;
 }
 
@@ -117,6 +119,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [selectedOrderForPix, setSelectedOrderForPix] = useState<Order | null>(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+    const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+    const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<Order | null>(null);
 
 
     const fetchOrders = useCallback(async (page: number, currentFilters: typeof filters) => {
@@ -199,6 +203,28 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             }
         }
     };
+
+    const handleSaveNotes = async (orderId: number, notes: string) => {
+        try {
+            const response = await fetch('/api/orders', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, notes }),
+            });
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Falha ao salvar anotações.');
+            }
+            setOrders(prevOrders =>
+                prevOrders.map(o => (o.id === orderId ? { ...o, notes } : o))
+            );
+            setIsNotesModalOpen(false);
+        } catch (err) {
+            console.error("Failed to save notes:", err);
+            alert('Não foi possível salvar as anotações. Tente novamente.');
+            throw err;
+        }
+    };
     
     const handleOpenPixModal = (order: Order) => {
         setSelectedOrderForPix(order);
@@ -208,6 +234,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const handleOpenDetailsModal = (order: Order) => {
         setSelectedOrderForDetails(order);
         setIsDetailsModalOpen(true);
+    };
+
+    const handleOpenNotesModal = (order: Order) => {
+        setSelectedOrderForNotes(order);
+        setIsNotesModalOpen(true);
     };
 
 
@@ -320,6 +351,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                                 <StatusButton orderId={order.id} currentStatus={order.completion_status} statusType="completion_status" onUpdate={handleStatusUpdate} />
                                             </td>
                                             <td className="px-6 py-4 flex items-center gap-2">
+                                                <button onClick={() => handleOpenNotesModal(order)} className="text-slate-300 hover:text-white p-2 rounded-full hover:bg-slate-500/10" title="Anotações">
+                                                    <FileText className="w-4 h-4" />
+                                                </button>
                                                 <button onClick={() => handleOpenDetailsModal(order)} className="text-slate-300 hover:text-white p-2 rounded-full hover:bg-slate-500/10" title="Visualizar Detalhes">
                                                     <Eye className="w-4 h-4" />
                                                 </button>
@@ -375,6 +409,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     isOpen={isDetailsModalOpen}
                     onClose={() => setIsDetailsModalOpen(false)}
                     order={selectedOrderForDetails}
+                />
+            )}
+             {isNotesModalOpen && selectedOrderForNotes && (
+                <OrderNotesModal
+                    isOpen={isNotesModalOpen}
+                    onClose={() => setIsNotesModalOpen(false)}
+                    order={selectedOrderForNotes}
+                    onSave={handleSaveNotes}
                 />
             )}
         </>

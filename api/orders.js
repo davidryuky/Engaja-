@@ -1,4 +1,5 @@
 
+
 // api/orders.js
 
 const mysql = require('mysql2/promise');
@@ -42,6 +43,7 @@ async function initializeDatabase() {
                 payment_status ENUM('Aguardando Pagamento', 'Pago') NOT NULL DEFAULT 'Aguardando Pagamento',
                 progress_status ENUM('Parado', 'Iniciado') NOT NULL DEFAULT 'Parado',
                 completion_status ENUM('Incompleto', 'Concluido') NOT NULL DEFAULT 'Incompleto',
+                notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -171,26 +173,35 @@ module.exports = async (req, res) => {
                 }
             }
             
-            // --- PUT: Update an order's status ---
+            // --- PUT: Update an order's status or notes ---
             if (req.method === 'PUT') {
-                const { orderId, statusType, newStatus } = req.body;
+                const { orderId, statusType, newStatus, notes } = req.body;
                 
-                if (!orderId || !statusType || !newStatus) {
-                    return res.status(400).json({ success: false, message: 'Dados de atualização insuficientes.' });
+                if (!orderId) {
+                    return res.status(400).json({ success: false, message: 'ID do pedido é obrigatório.' });
                 }
 
-                // Whitelist status types to prevent SQL injection
-                const validStatusTypes = ['payment_status', 'progress_status', 'completion_status'];
-                if (!validStatusTypes.includes(statusType)) {
-                    return res.status(400).json({ success: false, message: 'Tipo de status inválido.' });
+                // Handle status update
+                if (statusType && newStatus) {
+                    const validStatusTypes = ['payment_status', 'progress_status', 'completion_status'];
+                    if (!validStatusTypes.includes(statusType)) {
+                        return res.status(400).json({ success: false, message: 'Tipo de status inválido.' });
+                    }
+                    const sql = `UPDATE orders SET ${statusType} = ? WHERE id = ?`;
+                    await connection.execute(sql, [newStatus, orderId]);
+                    return res.status(200).json({ success: true, message: 'Status do pedido atualizado com sucesso.' });
                 }
                 
-                // Use the internal 'id' for updates as it's more efficient
-                const sql = `UPDATE orders SET ${statusType} = ? WHERE id = ?`;
-                await connection.execute(sql, [newStatus, orderId]);
+                // Handle notes update
+                if (notes !== undefined) {
+                    const sql = `UPDATE orders SET notes = ? WHERE id = ?`;
+                    await connection.execute(sql, [notes, orderId]);
+                    return res.status(200).json({ success: true, message: 'Anotações salvas com sucesso.' });
+                }
 
-                return res.status(200).json({ success: true, message: 'Status do pedido atualizado com sucesso.' });
+                return res.status(400).json({ success: false, message: 'Dados de atualização insuficientes.' });
             }
+
 
             // --- DELETE: Delete an order ---
             if (req.method === 'DELETE') {
