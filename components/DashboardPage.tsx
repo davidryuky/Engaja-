@@ -237,34 +237,36 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     </div>
 
                     {/* --- FILTERS --- */}
-                     <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 mb-6 flex flex-wrap items-center gap-4">
-                        <div className="flex items-center gap-2 text-slate-300">
+                     <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 mb-6 flex flex-col md:flex-row md:items-center gap-4">
+                        <div className="flex items-center gap-2 text-slate-300 flex-shrink-0">
                            <Filter className="w-5 h-5" />
                            <span className="font-semibold">Filtros:</span>
                         </div>
-                        <div className="flex-grow">
-                             <label htmlFor="payment_status_filter" className="sr-only">Filtrar por Pagamento</label>
-                             <select name="payment_status" id="payment_status_filter" value={filters.payment_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full md:w-auto">
-                                <option value="all">Pagamento: Todos</option>
-                                <option value="Aguardando Pagamento">Aguardando Pagamento</option>
-                                <option value="Pago">Pago</option>
-                             </select>
-                        </div>
-                         <div className="flex-grow">
-                             <label htmlFor="progress_status_filter" className="sr-only">Filtrar por Progresso</label>
-                             <select name="progress_status" id="progress_status_filter" value={filters.progress_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full md:w-auto">
-                                <option value="all">Progresso: Todos</option>
-                                <option value="Parado">Parado</option>
-                                <option value="Iniciado">Iniciado</option>
-                             </select>
-                        </div>
-                         <div className="flex-grow">
-                            <label htmlFor="completion_status_filter" className="sr-only">Filtrar por Finalização</label>
-                             <select name="completion_status" id="completion_status_filter" value={filters.completion_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full md:w-auto">
-                                <option value="all">Finalização: Todos</option>
-                                <option value="Incompleto">Incompleto</option>
-                                <option value="Concluido">Concluído</option>
-                             </select>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                             <div>
+                                 <label htmlFor="payment_status_filter" className="sr-only">Filtrar por Pagamento</label>
+                                 <select name="payment_status" id="payment_status_filter" value={filters.payment_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
+                                    <option value="all">Pagamento: Todos</option>
+                                    <option value="Aguardando Pagamento">Aguardando</option>
+                                    <option value="Pago">Pago</option>
+                                 </select>
+                            </div>
+                             <div>
+                                 <label htmlFor="progress_status_filter" className="sr-only">Filtrar por Progresso</label>
+                                 <select name="progress_status" id="progress_status_filter" value={filters.progress_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
+                                    <option value="all">Progresso: Todos</option>
+                                    <option value="Parado">Parado</option>
+                                    <option value="Iniciado">Iniciado</option>
+                                 </select>
+                            </div>
+                             <div>
+                                <label htmlFor="completion_status_filter" className="sr-only">Filtrar por Finalização</label>
+                                 <select name="completion_status" id="completion_status_filter" value={filters.completion_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
+                                    <option value="all">Finalização: Todos</option>
+                                    <option value="Incompleto">Incompleto</option>
+                                    <option value="Concluido">Concluído</option>
+                                 </select>
+                            </div>
                         </div>
                     </div>
 
