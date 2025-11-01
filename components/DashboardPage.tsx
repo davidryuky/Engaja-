@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 interface DashboardPageProps {
@@ -81,20 +82,72 @@ const StatusButton: React.FC<StatusButtonProps> = ({ statusType, currentStatus, 
     );
 };
 
+// --- Pagination Component ---
+interface PaginationProps {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+}
+
+const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages <= 1) {
+        return null;
+    }
+
+    const handlePrevious = () => {
+        if (currentPage > 1) {
+            onPageChange(currentPage - 1);
+        }
+    };
+
+    const handleNext = () => {
+        if (currentPage < totalPages) {
+            onPageChange(currentPage + 1);
+        }
+    };
+
+    return (
+        <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-semibold rounded-md bg-brand-dark-200 border border-brand-purple/50 enabled:hover:bg-brand-purple/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Anterior
+            </button>
+            <span className="text-sm text-slate-400">
+                Página {currentPage} de {totalPages}
+            </span>
+            <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-semibold rounded-md bg-brand-dark-200 border border-brand-purple/50 enabled:hover:bg-brand-purple/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Próxima
+            </button>
+        </div>
+    );
+};
+
+
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = 1) => {
     try {
       setError('');
       setIsLoading(true);
-      const response = await fetch('/api/orders');
+      const response = await fetch(`/api/orders?page=${page}`);
       if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
       if (data.success) {
         setOrders(data.orders);
+        setTotalPages(data.totalPages);
+        setCurrentPage(data.currentPage);
       } else {
         throw new Error(data.message || 'Falha ao buscar pedidos.');
       }
@@ -107,8 +160,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   };
   
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    fetchOrders(currentPage);
+  }, [currentPage]);
 
   const handleLocalStatusChange = (orderId: number, statusType: keyof Order, newStatus: any) => {
     setOrders(currentOrders =>
@@ -132,8 +185,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
 
         const data = await response.json();
         if (data.success) {
-            // Remove the order from the local state for an immediate UI update
-            setOrders(currentOrders => currentOrders.filter(order => order.id !== orderId));
+            // After deleting, refetch the current page to get the updated list
+            fetchOrders(currentPage);
         } else {
             throw new Error(data.message || 'Falha ao apagar o pedido.');
         }
@@ -150,7 +203,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                 <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-16" />
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={fetchOrders}
+                    onClick={() => fetchOrders(currentPage)}
                     className="bg-brand-dark-200 border border-brand-purple/50 text-slate-300 font-bold p-2 rounded-full transition-all duration-300 hover:text-white hover:border-brand-pink disabled:opacity-50"
                     title="Atualizar Pedidos"
                     disabled={isLoading}
@@ -216,6 +269,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                       </p>
                                     </div>
                                   ))}
+                                  <Pagination 
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={setCurrentPage}
+                                  />
                               </div>
                           ) : (
                               <div className="text-center py-12 px-4 border-2 border-dashed border-brand-purple/20 rounded-lg">

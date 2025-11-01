@@ -1,3 +1,4 @@
+
 // api/orders.js
 
 const mysql = require('mysql2/promise');
@@ -83,10 +84,29 @@ module.exports = async (req, res) => {
         const connection = await pool.getConnection();
 
         try {
-            // --- GET: Fetch all orders for the dashboard ---
+            // --- GET: Fetch all orders for the dashboard with pagination ---
             if (req.method === 'GET') {
-                const [rows] = await connection.execute('SELECT * FROM orders ORDER BY created_at DESC');
-                return res.status(200).json({ success: true, orders: rows });
+                const page = parseInt(req.query.page, 10) || 1;
+                const limit = 10;
+                const offset = (page - 1) * limit;
+
+                // First, get the total count of orders
+                const [[{ total }]] = await connection.execute('SELECT COUNT(*) as total FROM orders');
+                const totalPages = Math.ceil(total / limit);
+
+                // Then, get the paginated orders
+                const [rows] = await connection.execute(
+                    'SELECT * FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?',
+                    [limit, offset]
+                );
+
+                return res.status(200).json({ 
+                    success: true, 
+                    orders: rows,
+                    totalPages: totalPages,
+                    currentPage: page,
+                    totalOrders: total
+                });
             }
 
             // --- POST: Create a new order ---
