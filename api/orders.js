@@ -1,4 +1,6 @@
+
 // api/orders.js
+
 const mysql = require('mysql2/promise');
 
 // Database connection pool
@@ -10,11 +12,19 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    // Add SSL configuration for secure connections if required by your provider
-    // ssl: {
-    //   rejectUnauthorized: true 
-    // }
 });
+
+// Helper function to generate a random alphanumeric public ID
+function generatePublicId() {
+    const prefix = 'EG';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 5; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return prefix + result;
+}
+
 
 // Function to initialize the database (create table if not exists)
 async function initializeDatabase() {
@@ -29,7 +39,9 @@ async function initializeDatabase() {
                 link TEXT NOT NULL,
                 quantity INT,
                 comments TEXT,
-                payment_status VARCHAR(50) DEFAULT 'Aguardando Pagamento',
+                payment_status ENUM('Aguardando Pagamento', 'Pago') NOT NULL DEFAULT 'Aguardando Pagamento',
+                progress_status ENUM('Parado', 'Iniciado') NOT NULL DEFAULT 'Parado',
+                completion_status ENUM('Incompleto', 'Concluido') NOT NULL DEFAULT 'Incompleto',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -47,26 +59,19 @@ async function ensureDbInitialized() {
     }
 }
 
-function generatePublicId() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = 'EG';
-    for (let i = 0; i < 5; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-}
-
 // Vercel Serverless Function Handler
 module.exports = async (req, res) => {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+    // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
     
+    // Ensure DB is ready before proceeding
     try {
         await ensureDbInitialized();
     } catch (dbError) {
@@ -74,70 +79,118 @@ module.exports = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Falha crítica ao inicializar o banco de dados.' });
     }
 
-    const connection = await pool.getConnection();
 
     try {
-        if (req.method === 'GET') {
-            const [orders] = await connection.execute('SELECT * FROM orders ORDER BY created_at DESC');
-            return res.status(200).json({ success: true, orders });
-        }
+        const connection = await pool.getConnection();
 
-        if (req.method === 'POST') {
-            const { platform, service, link, quantity, comments } = req.body;
+        try {
+            // --- GET: Fetch all orders for the dashboard with pagination ---
+            if (req.method === 'GET') {
+                const page = parseInt(req.query.page, 10) || 1;
+                const limit = 10;
+                const offset = (page - 1) * limit;
 
-            if (!platform || !service || !link) {
-                return res.status(400).json({ success: false, message: 'Campos obrigatórios ausentes.' });
+                // First, get the total count of orders
+                const [[{ total }]] = await connection.execute('SELECT COUNT(*) as total FROM orders');
+                const totalPages = Math.ceil(total / limit);
+
+                // Then, get the paginated orders
+                const [rows] = await connection.execute(
+                    'SELECT * FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?',
+                    [limit, offset]
+                );
+
+                return res.status(200).json({ 
+                    success: true, 
+                    orders: rows,
+                    totalPages: totalPages,
+                    currentPage: page,
+                    totalOrders: total
+                });
             }
 
-            let publicId;
-            let inserted = false;
-            let attempts = 0;
-            const maxAttempts = 10;
+            // --- POST: Create a new order ---
+            if (req.method === 'POST') {
+                const { platform, service, link, quantity, comments } = req.body;
+                
+                if (!platform || !service || !link) {
+                    return res.status(400).json({ success: false, message: 'Dados do pedido incompletos.' });
+                }
 
-            while (!inserted && attempts < maxAttempts) {
-                publicId = generatePublicId();
-                try {
-                    await connection.execute(
-                        'INSERT INTO orders (public_id, platform, service, link, quantity, comments, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        [publicId, platform, service, link, quantity || null, comments || null, 'Aguardando Pagamento']
-                    );
-                    inserted = true;
-                } catch (error) {
-                    // ER_DUP_ENTRY is the error code for a duplicate unique key
-                    if (error.code === 'ER_DUP_ENTRY') {
-                        attempts++;
-                        console.warn(`Collision detected for public_id ${publicId}. Retrying... Attempt ${attempts}`);
-                    } else {
-                        throw error; // Re-throw other errors
+                let publicId;
+                let success = false;
+                const maxRetries = 10; // Prevent infinite loops
+
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        publicId = generatePublicId();
+                        await connection.execute(
+                            'INSERT INTO orders (public_id, platform, service, link, quantity, comments) VALUES (?, ?, ?, ?, ?, ?)',
+                            [publicId, platform, service, link, quantity || null, comments || null]
+                        );
+                        success = true; // If insert is successful, we're done
+                        break; // Exit the loop
+                    } catch (error) {
+                        // Check if it's a duplicate entry error (code for mysql/mysql2)
+                        if (error.code === 'ER_DUP_ENTRY') {
+                            // If so, the loop will continue and try with a new ID
+                            console.warn(`Collision detected for public_id ${publicId}. Retrying...`);
+                            continue;
+                        }
+                        // For any other error, re-throw it to be caught by the outer handler
+                        throw error;
                     }
+                }
+
+                if (success) {
+                    return res.status(201).json({ success: true, message: 'Pedido criado com sucesso.', publicId: publicId });
+                } else {
+                    // If the loop finished without a successful insert
+                    console.error(`Failed to generate a unique public_id after ${maxRetries} attempts.`);
+                    return res.status(500).json({ success: false, message: 'Não foi possível gerar um ID único para o pedido. Tente novamente.' });
                 }
             }
             
-            if (!inserted) {
-                 throw new Error('Não foi possível gerar um ID de pedido único após várias tentativas.');
+            // --- PUT: Update an order's status ---
+            if (req.method === 'PUT') {
+                const { orderId, statusType, newStatus } = req.body;
+                
+                if (!orderId || !statusType || !newStatus) {
+                    return res.status(400).json({ success: false, message: 'Dados de atualização insuficientes.' });
+                }
+
+                // Whitelist status types to prevent SQL injection
+                const validStatusTypes = ['payment_status', 'progress_status', 'completion_status'];
+                if (!validStatusTypes.includes(statusType)) {
+                    return res.status(400).json({ success: false, message: 'Tipo de status inválido.' });
+                }
+                
+                // Use the internal 'id' for updates as it's more efficient
+                const sql = `UPDATE orders SET ${statusType} = ? WHERE id = ?`;
+                await connection.execute(sql, [newStatus, orderId]);
+
+                return res.status(200).json({ success: true, message: 'Status do pedido atualizado com sucesso.' });
             }
 
-            return res.status(201).json({ success: true, publicId });
-        }
-        
-        if (req.method === 'PUT') {
-            const { id, payment_status } = req.body;
-            if (!id || !payment_status) {
-                 return res.status(400).json({ success: false, message: 'ID e status são obrigatórios.' });
+            // --- DELETE: Delete an order ---
+            if (req.method === 'DELETE') {
+                const { orderId } = req.body;
+
+                if (!orderId) {
+                    return res.status(400).json({ success: false, message: 'ID do pedido é obrigatório.' });
+                }
+
+                await connection.execute('DELETE FROM orders WHERE id = ?', [orderId]);
+
+                return res.status(200).json({ success: true, message: 'Pedido apagado com sucesso.' });
             }
-            
-            await connection.execute('UPDATE orders SET payment_status = ? WHERE id = ?', [payment_status, id]);
-            return res.status(200).json({ success: true, message: 'Status atualizado com sucesso.' });
+
+            return res.status(405).json({ success: false, message: 'Method Not Allowed' });
+        } finally {
+            connection.release();
         }
-
-
-        // If method is not handled
-        return res.status(405).json({ success: false, message: 'Method Not Allowed' });
-
     } catch (error) {
         console.error('API Error:', error);
-        return res.status(500).json({ success: false, message: error.message || 'Erro interno do servidor.' });
-    } finally {
-        if (connection) connection.release();
+        return res.status(500).json({ success: false, message: 'Erro interno do servidor.' });
     }
 };

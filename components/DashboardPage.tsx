@@ -1,239 +1,327 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { FinancialSection } from './FinancialSection';
-import { OrderDetailsModal } from './OrderDetailsModal';
+import React, { useState, useEffect, useCallback } from 'react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye } from 'lucide-react';
 import { PixModal } from './PixModal';
-import { LogOut, Search, Eye, Edit, Copy, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { OrderDetailsModal } from './OrderDetailsModal'; // Import the new modal
 
-// Define and export the Order type so other components can use it
-export interface Order {
-  id: number;
-  public_id: string;
-  platform: string;
-  service: string;
-  link: string;
-  quantity: number | null;
-  comments: string | null;
-  payment_status: 'Aguardando Pagamento' | 'Pago' | 'Cancelado';
-  created_at: string;
+// --- TYPE DEFINITIONS ---
+export interface Order { // Exporting for use in other components
+    id: number;
+    public_id: string;
+    platform: string;
+    service: string;
+    link: string;
+    quantity: number | null;
+    comments: string | null;
+    payment_status: 'Aguardando Pagamento' | 'Pago';
+    progress_status: 'Parado' | 'Iniciado';
+    completion_status: 'Incompleto' | 'Concluido';
+    created_at: string;
 }
 
+// --- PROPS INTERFACE ---
 interface DashboardPageProps {
   onLogout: () => void;
 }
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // State for modals
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
-  
-  // State for filtering and searching
-  const [filterStatus, setFilterStatus] = useState('Todos');
-  const [searchTerm, setSearchTerm] = useState('');
+// --- STATUS CONFIGURATION ---
+type StatusType = 'payment_status' | 'progress_status' | 'completion_status';
 
-  const fetchOrders = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/orders');
-      const data = await response.json();
-      if (data.success) {
-        setOrders(data.orders);
-      } else {
-        throw new Error(data.message || 'Falha ao buscar pedidos.');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const statusConfig = {
+  payment_status: {
+    states: ['Aguardando Pagamento', 'Pago'],
+    colors: {
+      'Aguardando Pagamento': 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30',
+      'Pago': 'bg-green-500/20 text-green-300 hover:bg-green-500/30',
+    },
+  },
+  progress_status: {
+    states: ['Parado', 'Iniciado'],
+    colors: {
+      'Parado': 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30',
+      'Iniciado': 'bg-green-500/20 text-green-300 hover:bg-green-500/30',
+    },
+  },
+  completion_status: {
+    states: ['Incompleto', 'Concluido'],
+    colors: {
+      'Incompleto': 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30',
+      'Concluido': 'bg-green-500/20 text-green-300 hover:bg-green-500/30',
+    },
+  },
+};
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-  
-  const handleUpdateStatus = async (orderId: number, newStatus: Order['payment_status']) => {
-    try {
-        const response = await fetch('/api/orders', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: orderId, payment_status: newStatus }),
-        });
-        const data = await response.json();
-        if (data.success) {
-            setOrders(prevOrders => 
-                prevOrders.map(order => 
-                    order.id === orderId ? { ...order, payment_status: newStatus } : order
-                )
-            );
-        } else {
-            throw new Error(data.message || 'Falha ao atualizar status.');
+// --- HELPER COMPONENTS ---
+
+const StatusButton: React.FC<{
+    orderId: number;
+    currentStatus: string;
+    statusType: StatusType;
+    onUpdate: (orderId: number, statusType: StatusType, newStatus: string) => Promise<void>;
+}> = ({ orderId, currentStatus, statusType, onUpdate }) => {
+    const [status, setStatus] = useState(currentStatus);
+    const [isUpdating, setIsUpdating] = useState(false);
+    
+    const config = statusConfig[statusType];
+    const currentIndex = config.states.indexOf(status);
+    const nextIndex = (currentIndex + 1) % config.states.length;
+    const nextStatus = config.states[nextIndex];
+
+    const handleClick = async () => {
+        setIsUpdating(true);
+        try {
+            await onUpdate(orderId, statusType, nextStatus);
+            setStatus(nextStatus);
+        } catch (error) {
+            console.error(`Failed to update ${statusType}`, error);
+        } finally {
+            setIsUpdating(false);
         }
-    } catch (err) {
-        alert(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido.');
-    }
-  };
+    };
 
-  const handleViewDetails = (order: Order) => {
-    setSelectedOrder(order);
-    setIsDetailsModalOpen(true);
-  };
-  
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('Copiado para a área de transferência!');
-    }, (err) => {
-        console.error('Could not copy text: ', err);
-        alert('Falha ao copiar.');
-    });
-  };
-
-  const filteredOrders = useMemo(() => {
-    return orders
-      .filter(order => {
-        if (filterStatus === 'Todos') return true;
-        return order.payment_status === filterStatus;
-      })
-      .filter(order => {
-        const search = searchTerm.toLowerCase();
-        return (
-          order.public_id.toLowerCase().includes(search) ||
-          order.platform.toLowerCase().includes(search) ||
-          order.service.toLowerCase().includes(search) ||
-          order.link.toLowerCase().includes(search)
-        );
-      });
-  }, [orders, filterStatus, searchTerm]);
-  
-  const getStatusChip = (status: Order['payment_status']) => {
-    switch(status) {
-        case 'Pago':
-            return <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400"><CheckCircle className="w-3 h-3" />Pago</span>;
-        case 'Cancelado':
-            return <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400"><XCircle className="w-3 h-3" />Cancelado</span>;
-        case 'Aguardando Pagamento':
-        default:
-            return <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400"><Clock className="w-3 h-3" />Aguardando</span>;
-    }
-  };
+    return (
+        <button
+            onClick={handleClick}
+            disabled={isUpdating}
+            className={`w-full relative rounded-md p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-pink transition-colors duration-200 disabled:cursor-wait ${config.colors[status as keyof typeof config.colors]}`}
+        >
+            {status}
+            {isUpdating && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+        </button>
+    );
+};
 
 
-  return (
-    <div className="bg-brand-dark min-h-screen text-slate-100 font-sans">
-      <header className="bg-brand-dark-200 border-b border-brand-purple/30 p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-12" />
-            <h1 className="text-xl font-bold hidden sm:block">Painel Administrativo</h1>
-          </div>
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-full text-sm transition-all duration-300"
-          >
-            <LogOut className="w-4 h-4" /> Sair
-          </button>
-        </div>
-      </header>
-      
-      <main className="container mx-auto p-4 md:p-8">
-        <h2 className="text-3xl font-bold text-white mb-8">Visão Geral</h2>
-        <FinancialSection />
+// --- MAIN DASHBOARD COMPONENT ---
 
-        <div className="mt-12">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                <h2 className="text-3xl font-bold text-white">Pedidos Recentes</h2>
-                <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <input 
-                            type="text"
-                            placeholder="Buscar pedido..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full sm:w-64 bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-2 pl-10 focus:outline-none focus:border-brand-pink transition-colors duration-300"
-                        />
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalOrders, setTotalOrders] = useState(0);
+
+    // Modal States
+    const [isPixModalOpen, setIsPixModalOpen] = useState(false);
+    const [selectedOrderForPix, setSelectedOrderForPix] = useState<Order | null>(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+
+
+    const fetchOrders = useCallback(async (page: number) => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`/api/orders?page=${page}`);
+            if (!response.ok) {
+                throw new Error('Falha ao buscar pedidos.');
+            }
+            const data = await response.json();
+            if (data.success) {
+                setOrders(data.orders);
+                setTotalPages(data.totalPages);
+                setCurrentPage(data.currentPage);
+                setTotalOrders(data.totalOrders);
+            } else {
+                throw new Error(data.message || 'Erro ao carregar dados.');
+            }
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchOrders(currentPage);
+    }, [currentPage, fetchOrders]);
+    
+    const handleStatusUpdate = async (orderId: number, statusType: StatusType, newStatus: string) => {
+        try {
+            const response = await fetch('/api/orders', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, statusType, newStatus }),
+            });
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Falha ao atualizar status.');
+            }
+             setOrders(prevOrders =>
+                prevOrders.map(o => (o.id === orderId ? { ...o, [statusType]: newStatus } : o))
+            );
+        } catch (err) {
+            console.error("Update failed:", err);
+            alert('Não foi possível atualizar o pedido. A página será recarregada.');
+            fetchOrders(currentPage);
+            throw err;
+        }
+    };
+    
+    const handleDeleteOrder = async (orderId: number) => {
+        if (window.confirm('Tem certeza que deseja apagar este pedido? Esta ação é irreversível.')) {
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId }),
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    fetchOrders(currentPage);
+                } else {
+                    throw new Error(data.message || 'Falha ao apagar o pedido.');
+                }
+            } catch (err: any) {
+                setError(err.message);
+            }
+        }
+    };
+    
+    const handleOpenPixModal = (order: Order) => {
+        setSelectedOrderForPix(order);
+        setIsPixModalOpen(true);
+    };
+
+    const handleOpenDetailsModal = (order: Order) => {
+        setSelectedOrderForDetails(order);
+        setIsDetailsModalOpen(true);
+    };
+
+
+    return (
+        <>
+            <div className="bg-brand-dark min-h-screen text-slate-100 font-sans">
+                <header className="bg-brand-dark-200 border-b border-brand-purple/30 p-4 flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-12" />
+                        <h1 className="text-xl md:text-2xl font-bold text-white">Painel Administrativo</h1>
                     </div>
-                     <select 
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="bg-brand-dark-200 border-2 border-brand-purple/30 rounded-lg p-2.5 focus:outline-none focus:border-brand-pink transition-colors duration-300 appearance-none"
+                    <button
+                        onClick={onLogout}
+                        className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300"
                     >
-                        <option value="Todos">Todos Status</option>
-                        <option value="Aguardando Pagamento">Aguardando</option>
-                        <option value="Pago">Pago</option>
-                        <option value="Cancelado">Cancelado</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-2xl overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead className="border-b border-brand-purple/30 text-xs text-slate-400 uppercase tracking-wider">
-                        <tr>
-                            <th className="p-4">ID</th>
-                            <th className="p-4">Data</th>
-                            <th className="p-4">Plataforma</th>
-                            <th className="p-4">Serviço</th>
-                            <th className="p-4">Status</th>
-                            <th className="p-4 text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                        <LogOut className="w-5 h-5" />
+                        <span className="hidden sm:inline">Sair</span>
+                    </button>
+                </header>
+
+                <main className="p-4 md:p-8">
+                    <div className="mb-6 flex justify-between items-center">
+                        <h2 className="text-2xl font-bold">Gerenciamento de Pedidos ({totalOrders})</h2>
+                        <button onClick={() => fetchOrders(currentPage)} disabled={isLoading} className="text-slate-300 hover:text-white transition-colors">
+                            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                        </button>
+                    </div>
+
+                    {error && (
+                        <div className="bg-red-500/20 border border-red-500/50 text-red-300 p-4 rounded-lg mb-6 flex items-center gap-4">
+                            <AlertTriangle />
+                            <span>{error}</span>
+                        </div>
+                    )}
+                    
+                    <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg overflow-x-auto">
                         {isLoading ? (
-                            <tr><td colSpan={6} className="text-center p-8">Carregando pedidos...</td></tr>
-                        ) : error ? (
-                            <tr><td colSpan={6} className="text-center p-8 text-red-400">{error}</td></tr>
-                        ) : filteredOrders.length === 0 ? (
-                             <tr><td colSpan={6} className="text-center p-8">Nenhum pedido encontrado.</td></tr>
+                            <div className="h-96 flex items-center justify-center">
+                                <Loader2 className="w-12 h-12 animate-spin text-brand-pink" />
+                            </div>
+                        ) : orders.length === 0 ? (
+                             <div className="h-96 flex items-center justify-center text-slate-400">
+                                <p>Nenhum pedido encontrado.</p>
+                            </div>
                         ) : (
-                            filteredOrders.map(order => (
-                                <tr key={order.id} className="border-b border-brand-dark last:border-b-0 hover:bg-brand-dark/50 transition-colors">
-                                    <td className="p-4 font-mono text-brand-pink">{order.public_id}</td>
-                                    <td className="p-4 whitespace-nowrap">{new Date(order.created_at).toLocaleDateString('pt-BR')}</td>
-                                    <td className="p-4">{order.platform}</td>
-                                    <td className="p-4">{order.service}</td>
-                                    <td className="p-4">{getStatusChip(order.payment_status)}</td>
-                                    <td className="p-4">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <button onClick={() => handleViewDetails(order)} className="p-2 text-slate-400 hover:text-white transition-colors" title="Ver Detalhes"><Eye className="w-5 h-5" /></button>
-                                            
-                                            {/* Dropdown for status change */}
-                                            <div className="relative group">
-                                                 <button className="p-2 text-slate-400 hover:text-white transition-colors" title="Alterar Status"><Edit className="w-5 h-5" /></button>
-                                                 <div className="absolute right-0 bottom-full mb-2 w-48 bg-brand-dark border border-brand-purple/50 rounded-lg shadow-lg z-10 hidden group-hover:block">
-                                                    <button onClick={() => handleUpdateStatus(order.id, 'Pago')} className="w-full text-left px-4 py-2 text-sm hover:bg-brand-purple/30">Marcar como Pago</button>
-                                                    <button onClick={() => handleUpdateStatus(order.id, 'Aguardando Pagamento')} className="w-full text-left px-4 py-2 text-sm hover:bg-brand-purple/30">Marcar como Aguardando</button>
-                                                    <button onClick={() => handleUpdateStatus(order.id, 'Cancelado')} className="w-full text-left px-4 py-2 text-sm hover:bg-brand-purple/30">Marcar como Cancelado</button>
-                                                 </div>
-                                            </div>
-
-                                            <button onClick={() => copyToClipboard(order.link)} className="p-2 text-slate-400 hover:text-white transition-colors" title="Copiar Link"><Copy className="w-5 h-5" /></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                            <table className="w-full text-sm text-left text-slate-300">
+                                <thead className="text-xs text-slate-400 uppercase bg-brand-dark">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3">ID Pedido</th>
+                                        <th scope="col" className="px-6 py-3">Serviço</th>
+                                        <th scope="col" className="px-6 py-3">Data</th>
+                                        <th scope="col" className="px-6 py-3">Pagamento</th>
+                                        <th scope="col" className="px-6 py-3">Progresso</th>
+                                        <th scope="col" className="px-6 py-3">Finalização</th>
+                                        <th scope="col" className="px-6 py-3">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orders.map(order => (
+                                        <tr key={order.id} className="border-b border-brand-purple/20 hover:bg-brand-dark-200/50">
+                                            <td className="px-6 py-4 font-mono font-bold text-brand-pink">{order.public_id}</td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-semibold">{order.platform} - {order.service}</div>
+                                                <div className="text-xs text-slate-400">
+                                                    {order.quantity ? `Qtd: ${order.quantity.toLocaleString('pt-BR')}` : 'Comentários'}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">{new Date(order.created_at).toLocaleString('pt-BR')}</td>
+                                            <td className="px-6 py-4">
+                                                 <StatusButton orderId={order.id} currentStatus={order.payment_status} statusType="payment_status" onUpdate={handleStatusUpdate} />
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <StatusButton orderId={order.id} currentStatus={order.progress_status} statusType="progress_status" onUpdate={handleStatusUpdate} />
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <StatusButton orderId={order.id} currentStatus={order.completion_status} statusType="completion_status" onUpdate={handleStatusUpdate} />
+                                            </td>
+                                            <td className="px-6 py-4 flex items-center gap-2">
+                                                <button onClick={() => handleOpenDetailsModal(order)} className="text-slate-300 hover:text-white p-2 rounded-full hover:bg-slate-500/10" title="Visualizar Detalhes">
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => handleOpenPixModal(order)} className="text-cyan-400 hover:text-cyan-300 p-2 rounded-full hover:bg-cyan-500/10" title="Gerar PIX">
+                                                    <QrCode className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => handleDeleteOrder(order.id)} className="text-red-500 hover:text-red-400 p-2 rounded-full hover:bg-red-500/10" title="Apagar Pedido">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         )}
-                    </tbody>
-                </table>
+                    </div>
+                    
+                    {!isLoading && totalPages > 1 && (
+                        <div className="flex justify-between items-center mt-6">
+                             <span className="text-sm text-slate-400">
+                                Página {currentPage} de {totalPages}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                 <button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-2 rounded-md bg-brand-dark-200 border border-brand-purple/30 disabled:opacity-50"
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 rounded-md bg-brand-dark-200 border border-brand-purple/30 disabled:opacity-50"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                </main>
             </div>
-
-        </div>
-      </main>
-      
-      {selectedOrder && (
-          <OrderDetailsModal 
-            isOpen={isDetailsModalOpen}
-            onClose={() => setIsDetailsModalOpen(false)}
-            order={selectedOrder}
-          />
-      )}
-
-      <PixModal isOpen={isPixModalOpen} onClose={() => setIsPixModalOpen(false)} />
-    </div>
-  );
+             {isPixModalOpen && selectedOrderForPix && (
+                <PixModal
+                    isOpen={isPixModalOpen}
+                    onClose={() => setIsPixModalOpen(false)}
+                    order={selectedOrderForPix}
+                />
+            )}
+             {isDetailsModalOpen && selectedOrderForDetails && (
+                <OrderDetailsModal
+                    isOpen={isDetailsModalOpen}
+                    onClose={() => setIsDetailsModalOpen(false)}
+                    order={selectedOrderForDetails}
+                />
+            )}
+        </>
+    );
 };

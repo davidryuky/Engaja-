@@ -1,7 +1,6 @@
 {
-  "name": "engaja-plus-deploy",
+  "name": "engaja-plus-backend",
   "version": "1.0.0",
-  "description": "Engaja+ Social Deploy",
   "private": true,
   "dependencies": {
     "bcrypt": "^5.1.1",
