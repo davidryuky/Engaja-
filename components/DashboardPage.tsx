@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, ExternalLink } from 'lucide-react';
 import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal';
-import { OrderNotesModal } from './OrderNotesModal'; // Import the new modal
+import { OrderNotesModal } from './OrderNotesModal';
+import { AddSupplierModal } from './AddSupplierModal'; // Import the new modal
 
 // --- TYPE DEFINITIONS ---
 export interface Order { // Exporting for use in other components
@@ -130,14 +131,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
     const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
     const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<Order | null>(null);
+    const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
+
 
     // Supplier States
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(true);
     const [supplierError, setSupplierError] = useState<string | null>(null);
-    const [newSupplierName, setNewSupplierName] = useState('');
-    const [newSupplierLink, setNewSupplierLink] = useState('');
-    const [isAddingSupplier, setIsAddingSupplier] = useState(false);
 
 
     const fetchOrders = useCallback(async (page: number, currentFilters: typeof filters) => {
@@ -268,30 +268,21 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         }
     };
 
-    const handleAddSupplier = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newSupplierName.trim() || !newSupplierLink.trim()) {
-            alert('Por favor, preencha o nome e o link do fornecedor.');
-            return;
-        }
-        setIsAddingSupplier(true);
+    const handleAddSupplier = async (name: string, link: string) => {
         try {
             const response = await fetch('/api/suppliers', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newSupplierName, link: newSupplierLink }),
+                body: JSON.stringify({ name, link }),
             });
             const data = await response.json();
             if (!data.success) {
                 throw new Error(data.message || 'Falha ao adicionar fornecedor.');
             }
             setSuppliers(prev => [...prev, data.supplier].sort((a, b) => Number(b.is_favorited) - Number(a.is_favorited)));
-            setNewSupplierName('');
-            setNewSupplierLink('');
         } catch (err: any) {
             setSupplierError(err.message);
-        } finally {
-            setIsAddingSupplier(false);
+            throw err; // Re-throw to be caught by the modal
         }
     };
 
@@ -371,39 +362,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
 
                 <main className="p-4 md:p-8">
                     <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 md:p-6 mb-8">
-                        <h2 className="text-2xl font-bold mb-4">Fornecedores</h2>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-bold">Fornecedores</h2>
+                            <button
+                                onClick={() => setIsAddSupplierModalOpen(true)}
+                                className="flex items-center justify-center gap-2 bg-brand-purple hover:bg-opacity-80 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300"
+                            >
+                                <PlusCircle className="w-5 h-5" />
+                                <span className="hidden sm:inline">Adicionar</span>
+                            </button>
+                        </div>
+
                         {supplierError && (
                             <div className="bg-red-500/20 border border-red-500/50 text-red-300 p-3 rounded-lg mb-4 flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4" />
                                 <span>{supplierError}</span>
                             </div>
                         )}
-                        <form onSubmit={handleAddSupplier} className="flex flex-col sm:flex-row items-center gap-3 mb-6">
-                            <input
-                                type="text"
-                                value={newSupplierName}
-                                onChange={(e) => setNewSupplierName(e.target.value)}
-                                placeholder="Nome do Fornecedor"
-                                className="flex-grow w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-2 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
-                                disabled={isAddingSupplier}
-                            />
-                            <input
-                                type="url"
-                                value={newSupplierLink}
-                                onChange={(e) => setNewSupplierLink(e.target.value)}
-                                placeholder="https://link.com"
-                                className="flex-grow w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-2 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
-                                disabled={isAddingSupplier}
-                            />
-                            <button
-                                type="submit"
-                                disabled={isAddingSupplier}
-                                className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-2 bg-brand-purple hover:bg-opacity-80 text-white font-semibold py-2 px-5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-wait"
-                            >
-                                {isAddingSupplier ? <Loader2 className="w-5 h-5 animate-spin"/> : <PlusCircle className="w-5 h-5" />}
-                                <span className="hidden sm:inline">Adicionar</span>
-                            </button>
-                        </form>
                         
                         {isLoadingSuppliers ? (
                             <div className="flex justify-center p-8">
@@ -412,31 +387,31 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                         ) : suppliers.length === 0 ? (
                             <p className="text-center text-slate-400 py-4">Nenhum fornecedor cadastrado.</p>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3">
                                 {suppliers.map(supplier => (
                                     <div 
                                         key={supplier.id} 
-                                        className={`flex items-center gap-2 p-2 rounded-lg transition-colors duration-300 ${supplier.is_favorited ? 'bg-yellow-500/20' : 'bg-brand-dark'}`}
+                                        className={`relative flex items-center gap-2 p-2 rounded-lg transition-colors duration-300 border border-brand-purple/30 ${supplier.is_favorited ? 'bg-yellow-500/20' : 'bg-brand-dark'}`}
                                     >
                                         <button 
                                             onClick={() => handleToggleFavorite(supplier.id, !supplier.is_favorited)}
-                                            className="p-2 rounded-full hover:bg-slate-500/20"
+                                            className="p-1 rounded-full hover:bg-slate-500/20 flex-shrink-0"
                                             title={supplier.is_favorited ? 'Desfavoritar' : 'Favoritar'}
                                         >
-                                            <Star className={`w-5 h-5 transition-colors ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-400'}`} />
+                                            <Star className={`w-4 h-4 transition-colors ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-400'}`} />
                                         </button>
                                         <a 
                                             href={supplier.link} 
                                             target="_blank" 
                                             rel="noopener noreferrer"
-                                            className="flex-grow flex items-center gap-2 text-left text-white font-semibold hover:text-brand-pink truncate"
+                                            className="flex-grow text-sm text-center text-white font-semibold hover:text-brand-pink truncate"
+                                            title={supplier.name}
                                         >
-                                            <span className="truncate">{supplier.name}</span>
-                                            <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                                            {supplier.name}
                                         </a>
                                         <button 
                                             onClick={() => handleDeleteSupplier(supplier.id)}
-                                            className="p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-500/10"
+                                            className="p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-500/10 flex-shrink-0"
                                             title="Apagar Fornecedor"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -604,6 +579,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     onClose={() => setIsNotesModalOpen(false)}
                     order={selectedOrderForNotes}
                     onSave={handleSaveNotes}
+                />
+            )}
+            {isAddSupplierModalOpen && (
+                <AddSupplierModal
+                    isOpen={isAddSupplierModalOpen}
+                    onClose={() => setIsAddSupplierModalOpen(false)}
+                    onAddSupplier={handleAddSupplier}
                 />
             )}
         </>
