@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText } from 'lucide-react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, ExternalLink } from 'lucide-react';
 import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal';
 import { OrderNotesModal } from './OrderNotesModal'; // Import the new modal
@@ -19,6 +19,15 @@ export interface Order { // Exporting for use in other components
     notes: string | null;
     created_at: string;
 }
+
+// Supplier Interface
+interface Supplier {
+    id: number;
+    name: string;
+    link: string;
+    is_favorited: number | boolean; // DB returns 0/1 for BOOLEAN
+}
+
 
 // --- PROPS INTERFACE ---
 interface DashboardPageProps {
@@ -122,6 +131,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
     const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<Order | null>(null);
 
+    // Supplier States
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(true);
+    const [supplierError, setSupplierError] = useState<string | null>(null);
+    const [newSupplierName, setNewSupplierName] = useState('');
+    const [newSupplierLink, setNewSupplierLink] = useState('');
+    const [isAddingSupplier, setIsAddingSupplier] = useState(false);
+
 
     const fetchOrders = useCallback(async (page: number, currentFilters: typeof filters) => {
         setIsLoading(true);
@@ -152,10 +169,35 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         }
     }, []);
 
+     const fetchSuppliers = useCallback(async () => {
+        setIsLoadingSuppliers(true);
+        setSupplierError(null);
+        try {
+            const response = await fetch('/api/suppliers');
+            if (!response.ok) {
+                throw new Error('Falha ao buscar fornecedores.');
+            }
+            const data = await response.json();
+            if (data.success) {
+                setSuppliers(data.suppliers);
+            } else {
+                throw new Error(data.message || 'Erro ao carregar fornecedores.');
+            }
+        } catch (err: any) {
+            setSupplierError(err.message);
+        } finally {
+            setIsLoadingSuppliers(false);
+        }
+    }, []);
+
     useEffect(() => {
         fetchOrders(currentPage, filters);
     }, [currentPage, filters, fetchOrders]);
     
+    useEffect(() => {
+        fetchSuppliers();
+    }, [fetchSuppliers]);
+
      const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
         setCurrentPage(1); // Reset to first page when filters change
@@ -225,6 +267,74 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             throw err;
         }
     };
+
+    const handleAddSupplier = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newSupplierName.trim() || !newSupplierLink.trim()) {
+            alert('Por favor, preencha o nome e o link do fornecedor.');
+            return;
+        }
+        setIsAddingSupplier(true);
+        try {
+            const response = await fetch('/api/suppliers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newSupplierName, link: newSupplierLink }),
+            });
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Falha ao adicionar fornecedor.');
+            }
+            setSuppliers(prev => [...prev, data.supplier].sort((a, b) => Number(b.is_favorited) - Number(a.is_favorited)));
+            setNewSupplierName('');
+            setNewSupplierLink('');
+        } catch (err: any) {
+            setSupplierError(err.message);
+        } finally {
+            setIsAddingSupplier(false);
+        }
+    };
+
+    const handleToggleFavorite = async (id: number, isFavorited: boolean) => {
+        const originalSuppliers = [...suppliers];
+        const updatedSuppliers = suppliers.map(s => s.id === id ? { ...s, is_favorited: isFavorited } : s)
+                                          .sort((a, b) => Number(b.is_favorited) - Number(a.is_favorited));
+        setSuppliers(updatedSuppliers);
+        
+        try {
+            const response = await fetch('/api/suppliers', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, is_favorited: isFavorited }),
+            });
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
+        } catch (err) {
+            console.error('Failed to toggle favorite:', err);
+            setSupplierError('Falha ao atualizar favorito. Revertendo.');
+            setSuppliers(originalSuppliers);
+        }
+    };
+
+    const handleDeleteSupplier = async (id: number) => {
+        if (window.confirm('Tem certeza que deseja apagar este fornecedor?')) {
+            const originalSuppliers = [...suppliers];
+            setSuppliers(suppliers.filter(s => s.id !== id));
+            try {
+                const response = await fetch('/api/suppliers', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id }),
+                });
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message);
+            } catch (err) {
+                console.error('Failed to delete supplier:', err);
+                setSupplierError('Falha ao apagar fornecedor. Revertendo.');
+                setSuppliers(originalSuppliers);
+            }
+        }
+    };
     
     const handleOpenPixModal = (order: Order) => {
         setSelectedOrderForPix(order);
@@ -260,6 +370,83 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                 </header>
 
                 <main className="p-4 md:p-8">
+                    <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 md:p-6 mb-8">
+                        <h2 className="text-2xl font-bold mb-4">Fornecedores</h2>
+                        {supplierError && (
+                            <div className="bg-red-500/20 border border-red-500/50 text-red-300 p-3 rounded-lg mb-4 flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span>{supplierError}</span>
+                            </div>
+                        )}
+                        <form onSubmit={handleAddSupplier} className="flex flex-col sm:flex-row items-center gap-3 mb-6">
+                            <input
+                                type="text"
+                                value={newSupplierName}
+                                onChange={(e) => setNewSupplierName(e.target.value)}
+                                placeholder="Nome do Fornecedor"
+                                className="flex-grow w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-2 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
+                                disabled={isAddingSupplier}
+                            />
+                            <input
+                                type="url"
+                                value={newSupplierLink}
+                                onChange={(e) => setNewSupplierLink(e.target.value)}
+                                placeholder="https://link.com"
+                                className="flex-grow w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-2 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
+                                disabled={isAddingSupplier}
+                            />
+                            <button
+                                type="submit"
+                                disabled={isAddingSupplier}
+                                className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-2 bg-brand-purple hover:bg-opacity-80 text-white font-semibold py-2 px-5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-wait"
+                            >
+                                {isAddingSupplier ? <Loader2 className="w-5 h-5 animate-spin"/> : <PlusCircle className="w-5 h-5" />}
+                                <span className="hidden sm:inline">Adicionar</span>
+                            </button>
+                        </form>
+                        
+                        {isLoadingSuppliers ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="w-8 h-8 animate-spin text-brand-pink" />
+                            </div>
+                        ) : suppliers.length === 0 ? (
+                            <p className="text-center text-slate-400 py-4">Nenhum fornecedor cadastrado.</p>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                {suppliers.map(supplier => (
+                                    <div 
+                                        key={supplier.id} 
+                                        className={`flex items-center gap-2 p-2 rounded-lg transition-colors duration-300 ${supplier.is_favorited ? 'bg-yellow-500/20' : 'bg-brand-dark'}`}
+                                    >
+                                        <button 
+                                            onClick={() => handleToggleFavorite(supplier.id, !supplier.is_favorited)}
+                                            className="p-2 rounded-full hover:bg-slate-500/20"
+                                            title={supplier.is_favorited ? 'Desfavoritar' : 'Favoritar'}
+                                        >
+                                            <Star className={`w-5 h-5 transition-colors ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-400'}`} />
+                                        </button>
+                                        <a 
+                                            href={supplier.link} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="flex-grow flex items-center gap-2 text-left text-white font-semibold hover:text-brand-pink truncate"
+                                        >
+                                            <span className="truncate">{supplier.name}</span>
+                                            <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                                        </a>
+                                        <button 
+                                            onClick={() => handleDeleteSupplier(supplier.id)}
+                                            className="p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-500/10"
+                                            title="Apagar Fornecedor"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <div className="mb-6 flex justify-between items-center flex-wrap gap-4">
                         <h2 className="text-2xl font-bold">Gerenciamento de Pedidos ({totalOrders})</h2>
                         <button onClick={() => fetchOrders(currentPage, filters)} disabled={isLoading} className="text-slate-300 hover:text-white transition-colors p-2">
