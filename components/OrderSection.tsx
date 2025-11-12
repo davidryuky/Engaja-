@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Instagram, Facebook, Youtube, Users, Heart, Eye, PlayCircle, Star, MessageSquare, Repeat, Radio, Clock, Mic } from 'lucide-react';
 
@@ -96,7 +95,7 @@ const socialNetworks = Object.keys(socialMediaData);
 
 type Service = typeof socialMediaData.Instagram.services[0];
 
-export const OrderSection: React.FC<{ whatsappNumber: string }> = ({ whatsappNumber }) => {
+export const OrderSection: React.FC = () => {
     const [selectedSocial, setSelectedSocial] = useState('Instagram');
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [quantity, setQuantity] = useState(1000);
@@ -200,7 +199,7 @@ export const OrderSection: React.FC<{ whatsappNumber: string }> = ({ whatsappNum
             // Add public Order ID to the message
             const finalMessage = `${whatsappMessage}\n\n*ID do Pedido: ${data.publicId}*`;
             const encodedMessage = encodeURIComponent(finalMessage);
-            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+            const whatsappUrl = `https://wa.me/818075997250?text=${encodedMessage}`;
             
             window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
@@ -219,7 +218,7 @@ export const OrderSection: React.FC<{ whatsappNumber: string }> = ({ whatsappNum
         }
         const message = `Olá! Gostaria de solicitar um serviço personalizado na Engaja+:\n\n*Pedido:*\n${customRequest}`;
         const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+        const whatsappUrl = `https://wa.me/818075997250?text=${encodedMessage}`;
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     };
 

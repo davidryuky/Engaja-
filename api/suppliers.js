@@ -50,12 +50,7 @@ module.exports = async (req, res) => {
         return res.status(200).end();
     }
     
-    try {
-        await ensureDbInitialized();
-    } catch (dbError) {
-        console.error('Database Initialization Error (suppliers):', dbError);
-        return res.status(500).json({ success: false, message: 'Falha crítica ao inicializar o banco de dados.' });
-    }
+    await ensureDbInitialized();
 
     try {
         const connection = await pool.getConnection();

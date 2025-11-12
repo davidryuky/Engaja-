@@ -1,9 +1,9 @@
-
 import React from 'react';
 
-export const ContactSection: React.FC<{ whatsappNumber: string }> = ({ whatsappNumber }) => {
+export const ContactSection: React.FC = () => {
+    const phoneNumber = '818075997250';
     const message = 'Olá! Vim pelo site e gostaria de mais informações.';
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
     return (
         <section 

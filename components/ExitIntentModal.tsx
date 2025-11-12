@@ -1,22 +1,20 @@
 
-
 import React from 'react';
 import { X as CloseIcon, Gift } from 'lucide-react';
 
 interface ExitIntentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  whatsappNumber: string;
 }
 
-export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({ isOpen, onClose, whatsappNumber }) => {
+export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) {
     return null;
   }
 
   const message = "Olá! Vi a oferta de saída no site e gostaria de resgatar meu cupom de 5% de desconto.";
   const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+  const whatsappUrl = `https://wa.me/818075997250?text=${encodedMessage}`;
 
   const handleClaimCoupon = () => {
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');

@@ -1,9 +1,9 @@
-
 import React from 'react';
 
-export const WhatsAppButton: React.FC<{ whatsappNumber: string }> = ({ whatsappNumber }) => {
+export const WhatsAppButton: React.FC = () => {
+  const phoneNumber = '818075997250';
   const message = 'Olá! Gostaria de tirar uma dúvida.';
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
   return (
     <a

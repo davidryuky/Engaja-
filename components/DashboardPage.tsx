@@ -1,12 +1,8 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, ExternalLink, Settings } from 'lucide-react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, ExternalLink } from 'lucide-react';
 import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal';
-import { OrderNotesModal } from './OrderNotesModal';
-import { SettingsModal } from './SettingsModal';
-import { AddSupplierModal } from './AddSupplierModal';
-
+import { OrderNotesModal } from './OrderNotesModal'; // Import the new modal
 
 // --- TYPE DEFINITIONS ---
 export interface Order { // Exporting for use in other components
@@ -25,7 +21,7 @@ export interface Order { // Exporting for use in other components
 }
 
 // Supplier Interface
-export interface Supplier { // Exporting for use in other components
+interface Supplier {
     id: number;
     name: string;
     link: string;
@@ -139,12 +135,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(true);
     const [supplierError, setSupplierError] = useState<string | null>(null);
-    const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
-    
-    // Settings Modal States
-    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-    const [whatsAppNumber, setWhatsAppNumber] = useState('');
-    const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+    const [newSupplierName, setNewSupplierName] = useState('');
+    const [newSupplierLink, setNewSupplierLink] = useState('');
+    const [isAddingSupplier, setIsAddingSupplier] = useState(false);
 
 
     const fetchOrders = useCallback(async (page: number, currentFilters: typeof filters) => {
@@ -204,29 +197,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     useEffect(() => {
         fetchSuppliers();
     }, [fetchSuppliers]);
-
-    // Fetch settings
-    useEffect(() => {
-        const fetchSettings = async () => {
-            setIsLoadingSettings(true);
-            try {
-                const response = await fetch('/api/settings?key=whatsapp_number');
-                const data = await response.json();
-                if (data.success) {
-                    setWhatsAppNumber(data.value);
-                } else {
-                    setWhatsAppNumber('818075997250'); // Fallback
-                }
-            } catch (error) {
-                console.error("Failed to fetch settings:", error);
-                setWhatsAppNumber('818075997250'); // Fallback
-            } finally {
-                setIsLoadingSettings(false);
-            }
-        };
-        fetchSettings();
-    }, []);
-
 
      const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -298,9 +268,31 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         }
     };
 
-    const handleSupplierAdded = (newSupplier: Supplier) => {
-        setSuppliers(prev => [...prev, newSupplier].sort((a, b) => Number(b.is_favorited) - Number(a.is_favorited)));
-        setIsAddSupplierModalOpen(false);
+    const handleAddSupplier = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newSupplierName.trim() || !newSupplierLink.trim()) {
+            alert('Por favor, preencha o nome e o link do fornecedor.');
+            return;
+        }
+        setIsAddingSupplier(true);
+        try {
+            const response = await fetch('/api/suppliers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newSupplierName, link: newSupplierLink }),
+            });
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Falha ao adicionar fornecedor.');
+            }
+            setSuppliers(prev => [...prev, data.supplier].sort((a, b) => Number(b.is_favorited) - Number(a.is_favorited)));
+            setNewSupplierName('');
+            setNewSupplierLink('');
+        } catch (err: any) {
+            setSupplierError(err.message);
+        } finally {
+            setIsAddingSupplier(false);
+        }
     };
 
     const handleToggleFavorite = async (id: number, isFavorited: boolean) => {
@@ -344,27 +336,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         }
     };
     
-    const handleSaveSettings = async (newNumber: string) => {
-        try {
-            const response = await fetch('/api/settings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: 'whatsapp_number', value: newNumber }),
-            });
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.message || 'Falha ao salvar configurações.');
-            }
-            setWhatsAppNumber(newNumber);
-            setIsSettingsModalOpen(false);
-            alert('Configurações salvas com sucesso!');
-        } catch (err: any) {
-            console.error("Failed to save settings:", err);
-            alert(`Não foi possível salvar as configurações: ${err.message}`);
-            throw err;
-        }
-    };
-    
     const handleOpenPixModal = (order: Order) => {
         setSelectedOrderForPix(order);
         setIsPixModalOpen(true);
@@ -389,80 +360,86 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                         <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-12" />
                         <h1 className="text-xl md:text-2xl font-bold text-white">Painel Administrativo</h1>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setIsSettingsModalOpen(true)}
-                            className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300"
-                            title="Configurações"
-                        >
-                            <Settings className="w-5 h-5" />
-                            <span className="hidden sm:inline">Configurações</span>
-                        </button>
-                        <button
-                            onClick={onLogout}
-                            className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300"
-                        >
-                            <LogOut className="w-5 h-5" />
-                            <span className="hidden sm:inline">Sair</span>
-                        </button>
-                    </div>
+                    <button
+                        onClick={onLogout}
+                        className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300"
+                    >
+                        <LogOut className="w-5 h-5" />
+                        <span className="hidden sm:inline">Sair</span>
+                    </button>
                 </header>
 
                 <main className="p-4 md:p-8">
                     <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 md:p-6 mb-8">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-2xl font-bold">Fornecedores</h2>
-                            <button
-                                onClick={() => setIsAddSupplierModalOpen(true)}
-                                className="flex items-center justify-center gap-2 bg-brand-purple hover:bg-opacity-80 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
-                            >
-                                <PlusCircle className="w-4 h-4" />
-                                <span>Adicionar</span>
-                            </button>
-                        </div>
-
+                        <h2 className="text-2xl font-bold mb-4">Fornecedores</h2>
                         {supplierError && (
                             <div className="bg-red-500/20 border border-red-500/50 text-red-300 p-3 rounded-lg mb-4 flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4" />
                                 <span>{supplierError}</span>
                             </div>
                         )}
+                        <form onSubmit={handleAddSupplier} className="flex flex-col sm:flex-row items-center gap-3 mb-6">
+                            <input
+                                type="text"
+                                value={newSupplierName}
+                                onChange={(e) => setNewSupplierName(e.target.value)}
+                                placeholder="Nome do Fornecedor"
+                                className="flex-grow w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-2 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
+                                disabled={isAddingSupplier}
+                            />
+                            <input
+                                type="url"
+                                value={newSupplierLink}
+                                onChange={(e) => setNewSupplierLink(e.target.value)}
+                                placeholder="https://link.com"
+                                className="flex-grow w-full bg-brand-dark border-2 border-brand-purple/30 rounded-lg p-2 text-white focus:outline-none focus:border-brand-pink transition-colors duration-300"
+                                disabled={isAddingSupplier}
+                            />
+                            <button
+                                type="submit"
+                                disabled={isAddingSupplier}
+                                className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-2 bg-brand-purple hover:bg-opacity-80 text-white font-semibold py-2 px-5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-wait"
+                            >
+                                {isAddingSupplier ? <Loader2 className="w-5 h-5 animate-spin"/> : <PlusCircle className="w-5 h-5" />}
+                                <span className="hidden sm:inline">Adicionar</span>
+                            </button>
+                        </form>
                         
                         {isLoadingSuppliers ? (
                             <div className="flex justify-center p-8">
                                 <Loader2 className="w-8 h-8 animate-spin text-brand-pink" />
                             </div>
                         ) : suppliers.length === 0 ? (
-                            <p className="text-center text-slate-400 py-4">Nenhum fornecedor cadastrado. Clique em "Adicionar" para começar.</p>
+                            <p className="text-center text-slate-400 py-4">Nenhum fornecedor cadastrado.</p>
                         ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                                 {suppliers.map(supplier => (
                                     <div 
                                         key={supplier.id} 
-                                        className={`group relative flex items-center gap-1 p-1 rounded-lg transition-colors duration-300 ${supplier.is_favorited ? 'bg-yellow-500/20' : 'bg-brand-dark'}`}
+                                        className={`flex items-center gap-2 p-2 rounded-lg transition-colors duration-300 ${supplier.is_favorited ? 'bg-yellow-500/20' : 'bg-brand-dark'}`}
                                     >
                                         <button 
                                             onClick={() => handleToggleFavorite(supplier.id, !supplier.is_favorited)}
-                                            className="p-1.5 rounded-full hover:bg-slate-500/20 flex-shrink-0"
+                                            className="p-2 rounded-full hover:bg-slate-500/20"
                                             title={supplier.is_favorited ? 'Desfavoritar' : 'Favoritar'}
                                         >
-                                            <Star className={`w-4 h-4 transition-colors ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-400'}`} />
+                                            <Star className={`w-5 h-5 transition-colors ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-400'}`} />
                                         </button>
                                         <a 
                                             href={supplier.link} 
                                             target="_blank" 
                                             rel="noopener noreferrer"
-                                            className="flex-grow flex items-center gap-1.5 text-left text-white text-sm font-semibold hover:text-brand-pink truncate"
+                                            className="flex-grow flex items-center gap-2 text-left text-white font-semibold hover:text-brand-pink truncate"
                                         >
                                             <span className="truncate">{supplier.name}</span>
-                                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                            <ExternalLink className="w-4 h-4 flex-shrink-0" />
                                         </a>
                                         <button 
                                             onClick={() => handleDeleteSupplier(supplier.id)}
-                                            className="p-1.5 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-500/10 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-500/10"
                                             title="Apagar Fornecedor"
                                         >
-                                            <Trash2 className="w-3 h-3" />
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
                                 ))}
@@ -629,19 +606,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     onSave={handleSaveNotes}
                 />
             )}
-             {isSettingsModalOpen && !isLoadingSettings && (
-                <SettingsModal
-                    isOpen={isSettingsModalOpen}
-                    onClose={() => setIsSettingsModalOpen(false)}
-                    initialWhatsAppNumber={whatsAppNumber}
-                    onSave={handleSaveSettings}
-                />
-            )}
-            <AddSupplierModal 
-                isOpen={isAddSupplierModalOpen}
-                onClose={() => setIsAddSupplierModalOpen(false)}
-                onAdd={handleSupplierAdded}
-            />
         </>
     );
 };

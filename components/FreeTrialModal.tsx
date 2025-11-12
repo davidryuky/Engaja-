@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Instagram, X as CloseIcon } from 'lucide-react';
 
@@ -17,10 +16,9 @@ const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
 interface FreeTrialModalProps {
   isOpen: boolean;
   onClose: () => void;
-  whatsappNumber: string;
 }
 
-export const FreeTrialModal: React.FC<FreeTrialModalProps> = ({ isOpen, onClose, whatsappNumber }) => {
+export const FreeTrialModal: React.FC<FreeTrialModalProps> = ({ isOpen, onClose }) => {
   const [selectedSocial, setSelectedSocial] = useState<string | null>(null);
 
   if (!isOpen) {
@@ -31,7 +29,7 @@ export const FreeTrialModal: React.FC<FreeTrialModalProps> = ({ isOpen, onClose,
     if (!selectedSocial) return;
     const message = `Olá! Gostaria de receber o teste de 50 seguidores para ${selectedSocial}.`;
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/818075997250?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     onClose();
   };
