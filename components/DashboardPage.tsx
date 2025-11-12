@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, Settings } from 'lucide-react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, Settings, CheckCircle, AlertOctagon } from 'lucide-react';
 import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal';
 import { OrderNotesModal } from './OrderNotesModal';
@@ -19,6 +19,7 @@ export interface Order { // Exporting for use in other components
     payment_status: 'Aguardando Pagamento' | 'Pago';
     progress_status: 'Parado' | 'Iniciado';
     completion_status: 'Incompleto' | 'Concluido';
+    problem_status: 'Normal' | 'Problema'; // New field
     notes: string | null;
     created_at: string;
 }
@@ -42,7 +43,7 @@ interface DashboardPageProps {
 }
 
 // --- STATUS CONFIGURATION ---
-type StatusType = 'payment_status' | 'progress_status' | 'completion_status';
+type StatusType = 'payment_status' | 'progress_status' | 'completion_status' | 'problem_status';
 
 const statusConfig = {
   payment_status: {
@@ -66,6 +67,11 @@ const statusConfig = {
       'Concluido': 'bg-green-500/20 text-green-300 hover:bg-green-500/30',
     },
   },
+  problem_status: {
+      states: ['Normal', 'Problema'],
+      // Colors handled specifically in the component due to icons
+      colors: {} 
+  }
 };
 
 // --- HELPER COMPONENTS ---
@@ -112,6 +118,58 @@ const StatusButton: React.FC<{
     );
 };
 
+const ProblemStatusButton: React.FC<{
+    orderId: number;
+    currentStatus: string;
+    onUpdate: (orderId: number, statusType: StatusType, newStatus: string) => Promise<void>;
+}> = ({ orderId, currentStatus, onUpdate }) => {
+    const [status, setStatus] = useState(currentStatus || 'Normal');
+    const [isUpdating, setIsUpdating] = useState(false);
+    
+    const isProblem = status === 'Problema';
+    const nextStatus = isProblem ? 'Normal' : 'Problema';
+
+    useEffect(() => {
+        setStatus(currentStatus || 'Normal');
+    }, [currentStatus]);
+
+    const handleClick = async () => {
+        setIsUpdating(true);
+        try {
+            await onUpdate(orderId, 'problem_status', nextStatus);
+            setStatus(nextStatus);
+        } catch (error) {
+            console.error(`Failed to update problem_status`, error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleClick}
+            disabled={isUpdating}
+            className={`w-full relative flex items-center justify-center rounded-md p-2 focus:outline-none transition-colors duration-200 disabled:cursor-wait ${
+                isProblem 
+                ? 'bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-500/20' 
+                : 'bg-brand-dark hover:bg-brand-dark-200 text-green-400 border border-green-500/30'
+            }`}
+            title={isProblem ? 'Resolver Problema' : 'Marcar como Problema'}
+        >
+            {isUpdating ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+            ) : isProblem ? (
+                <>
+                    <AlertOctagon className="h-5 w-5 mr-1" />
+                    <span className="text-xs font-bold">Problema</span>
+                </>
+            ) : (
+                 <CheckCircle className="h-5 w-5" />
+            )}
+        </button>
+    );
+};
+
 
 // --- MAIN DASHBOARD COMPONENT ---
 
@@ -128,6 +186,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         payment_status: 'all',
         progress_status: 'all',
         completion_status: 'all',
+        problem_status: 'all',
     });
 
     // Modal States
@@ -370,6 +429,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         setSelectedOrderForNotes(order);
         setIsNotesModalOpen(true);
     };
+    
+    const getOrderRowClass = (order: Order) => {
+        if (order.problem_status === 'Problema') {
+            return 'bg-red-900/20 hover:bg-red-900/30 border-red-500/30'; // Reddish background for problems
+        }
+        if (order.completion_status === 'Concluido') {
+            return 'bg-green-500/10 hover:bg-green-500/20';
+        }
+        return 'hover:bg-brand-dark-200/50';
+    };
 
 
     return (
@@ -473,7 +542,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                            <Filter className="w-5 h-5" />
                            <span className="font-semibold">Filtros:</span>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
                              <div>
                                  <label htmlFor="payment_status_filter" className="sr-only">Filtrar por Pagamento</label>
                                  <select name="payment_status" id="payment_status_filter" value={filters.payment_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
@@ -496,6 +565,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                     <option value="all">Finalização: Todos</option>
                                     <option value="Incompleto">Incompleto</option>
                                     <option value="Concluido">Concluído</option>
+                                 </select>
+                            </div>
+                            <div>
+                                <label htmlFor="problem_status_filter" className="sr-only">Filtrar por Problema</label>
+                                 <select name="problem_status" id="problem_status_filter" value={filters.problem_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
+                                    <option value="all">Problemas: Todos</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Problema">Com Problema</option>
                                  </select>
                             </div>
                         </div>
@@ -527,12 +604,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                         <th scope="col" className="px-6 py-3">Pagamento</th>
                                         <th scope="col" className="px-6 py-3">Progresso</th>
                                         <th scope="col" className="px-6 py-3">Finalização</th>
+                                        <th scope="col" className="px-6 py-3 text-center">Problema</th>
                                         <th scope="col" className="px-6 py-3">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {orders.map(order => (
-                                        <tr key={order.id} className={`border-b border-brand-purple/20 transition-colors duration-300 ${order.completion_status === 'Concluido' ? 'bg-green-500/10 hover:bg-green-500/20' : 'hover:bg-brand-dark-200/50'}`}>
+                                        <tr key={order.id} className={`border-b border-brand-purple/20 transition-colors duration-300 ${getOrderRowClass(order)}`}>
                                             <td className="px-6 py-4 font-mono font-bold text-brand-pink">{order.public_id}</td>
                                             <td className="px-6 py-4">
                                                 <div className="font-semibold">{order.platform} - {order.service}</div>
@@ -549,6 +627,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <StatusButton orderId={order.id} currentStatus={order.completion_status} statusType="completion_status" onUpdate={handleStatusUpdate} />
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <ProblemStatusButton orderId={order.id} currentStatus={order.problem_status} onUpdate={handleStatusUpdate} />
                                             </td>
                                             <td className="px-6 py-4 flex items-center gap-2">
                                                 <button onClick={() => handleOpenNotesModal(order)} className="text-slate-300 hover:text-white p-2 rounded-full hover:bg-slate-500/10" title="Anotações">

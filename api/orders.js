@@ -1,17 +1,25 @@
+
 // api/orders.js
 
 const mysql = require('mysql2/promise');
 
-// Database connection pool
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-});
+// Use lazy initialization for the connection pool
+let pool;
+
+function getPool() {
+    if (!pool) {
+        pool = mysql.createPool({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_DATABASE,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0,
+        });
+    }
+    return pool;
+}
 
 // Helper function to generate a random alphanumeric public ID
 function generatePublicId() {
@@ -27,7 +35,7 @@ function generatePublicId() {
 
 // Function to initialize the database (create table and ensure columns exist)
 async function initializeDatabase() {
-    const connection = await pool.getConnection();
+    const connection = await getPool().getConnection();
     try {
         // Create the table if it doesn't exist
         await connection.execute(`
@@ -42,18 +50,30 @@ async function initializeDatabase() {
                 payment_status ENUM('Aguardando Pagamento', 'Pago') NOT NULL DEFAULT 'Aguardando Pagamento',
                 progress_status ENUM('Parado', 'Iniciado') NOT NULL DEFAULT 'Parado',
                 completion_status ENUM('Incompleto', 'Concluido') NOT NULL DEFAULT 'Incompleto',
+                problem_status ENUM('Normal', 'Problema') NOT NULL DEFAULT 'Normal',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
 
-        // Check if the 'notes' column exists and add it if it doesn't
-        // This makes the schema migration robust
-        const [columns] = await connection.execute(
+        // Schema Migration: Check for new columns and add them if missing
+        
+        // 1. Check for 'notes'
+        const [notesColumns] = await connection.execute(
             `SHOW COLUMNS FROM orders LIKE 'notes'`
         );
-        if (columns.length === 0) {
+        if (notesColumns.length === 0) {
             await connection.execute(
                 `ALTER TABLE orders ADD COLUMN notes TEXT`
+            );
+        }
+
+        // 2. Check for 'problem_status'
+        const [problemColumns] = await connection.execute(
+            `SHOW COLUMNS FROM orders LIKE 'problem_status'`
+        );
+        if (problemColumns.length === 0) {
+            await connection.execute(
+                `ALTER TABLE orders ADD COLUMN problem_status ENUM('Normal', 'Problema') NOT NULL DEFAULT 'Normal'`
             );
         }
 
@@ -93,13 +113,13 @@ module.exports = async (req, res) => {
 
 
     try {
-        const connection = await pool.getConnection();
+        const connection = await getPool().getConnection();
 
         try {
             // --- GET: Fetch all orders for the dashboard with pagination and filtering ---
             if (req.method === 'GET') {
                 const page = parseInt(req.query.page, 10) || 1;
-                const { payment_status, progress_status, completion_status } = req.query;
+                const { payment_status, progress_status, completion_status, problem_status } = req.query;
 
                 const limit = 10;
                 const offset = (page - 1) * limit;
@@ -118,6 +138,10 @@ module.exports = async (req, res) => {
                 if (completion_status && completion_status !== 'all') {
                     whereClauses.push('completion_status = ?');
                     queryParams.push(completion_status);
+                }
+                if (problem_status && problem_status !== 'all') {
+                    whereClauses.push('problem_status = ?');
+                    queryParams.push(problem_status);
                 }
 
                 const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -193,7 +217,7 @@ module.exports = async (req, res) => {
 
                 // Handle status update
                 if (statusType && newStatus) {
-                    const validStatusTypes = ['payment_status', 'progress_status', 'completion_status'];
+                    const validStatusTypes = ['payment_status', 'progress_status', 'completion_status', 'problem_status'];
                     if (!validStatusTypes.includes(statusType)) {
                         return res.status(400).json({ success: false, message: 'Tipo de status inválido.' });
                     }
