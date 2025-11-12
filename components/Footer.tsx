@@ -9,9 +9,6 @@ export const Footer: React.FC = () => {
         <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-14 mb-4" />
         <p>&copy; {new Date().getFullYear()} Engaja+. Todos os direitos reservados.</p>
         <p className="text-sm mt-2">Construindo sua presença online, um seguidor de cada vez.</p>
-        <div className="mt-4">
-            <a href="#/login" className="text-xs text-slate-500 hover:text-brand-pink transition-colors">Acesso Restrito</a>
-        </div>
       </div>
     </footer>
   );
