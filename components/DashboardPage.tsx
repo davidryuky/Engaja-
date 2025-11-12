@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, ExternalLink } from 'lucide-react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, ExternalLink, Settings } from 'lucide-react';
 import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal';
-import { OrderNotesModal } from './OrderNotesModal'; // Import the new modal
+import { OrderNotesModal } from './OrderNotesModal';
+import { SettingsModal } from './SettingsModal';
 
 // --- TYPE DEFINITIONS ---
 export interface Order { // Exporting for use in other components
@@ -138,6 +140,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [newSupplierName, setNewSupplierName] = useState('');
     const [newSupplierLink, setNewSupplierLink] = useState('');
     const [isAddingSupplier, setIsAddingSupplier] = useState(false);
+    
+    // Settings Modal States
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [whatsAppNumber, setWhatsAppNumber] = useState('');
+    const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
 
     const fetchOrders = useCallback(async (page: number, currentFilters: typeof filters) => {
@@ -197,6 +204,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     useEffect(() => {
         fetchSuppliers();
     }, [fetchSuppliers]);
+
+    // Fetch settings
+    useEffect(() => {
+        const fetchSettings = async () => {
+            setIsLoadingSettings(true);
+            try {
+                const response = await fetch('/api/settings?key=whatsapp_number');
+                const data = await response.json();
+                if (data.success) {
+                    setWhatsAppNumber(data.value);
+                } else {
+                    setWhatsAppNumber('818075997250'); // Fallback
+                }
+            } catch (error) {
+                console.error("Failed to fetch settings:", error);
+                setWhatsAppNumber('818075997250'); // Fallback
+            } finally {
+                setIsLoadingSettings(false);
+            }
+        };
+        fetchSettings();
+    }, []);
+
 
      const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -336,6 +366,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         }
     };
     
+    const handleSaveSettings = async (newNumber: string) => {
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'whatsapp_number', value: newNumber }),
+            });
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Falha ao salvar configurações.');
+            }
+            setWhatsAppNumber(newNumber);
+            setIsSettingsModalOpen(false);
+            alert('Configurações salvas com sucesso!');
+        } catch (err: any) {
+            console.error("Failed to save settings:", err);
+            alert(`Não foi possível salvar as configurações: ${err.message}`);
+            throw err;
+        }
+    };
+    
     const handleOpenPixModal = (order: Order) => {
         setSelectedOrderForPix(order);
         setIsPixModalOpen(true);
@@ -360,13 +411,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                         <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-12" />
                         <h1 className="text-xl md:text-2xl font-bold text-white">Painel Administrativo</h1>
                     </div>
-                    <button
-                        onClick={onLogout}
-                        className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300"
-                    >
-                        <LogOut className="w-5 h-5" />
-                        <span className="hidden sm:inline">Sair</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setIsSettingsModalOpen(true)}
+                            className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300"
+                            title="Configurações"
+                        >
+                            <Settings className="w-5 h-5" />
+                            <span className="hidden sm:inline">Configurações</span>
+                        </button>
+                        <button
+                            onClick={onLogout}
+                            className="flex items-center gap-2 bg-brand-dark hover:bg-brand-purple/30 border border-brand-purple/50 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300"
+                        >
+                            <LogOut className="w-5 h-5" />
+                            <span className="hidden sm:inline">Sair</span>
+                        </button>
+                    </div>
                 </header>
 
                 <main className="p-4 md:p-8">
@@ -604,6 +665,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     onClose={() => setIsNotesModalOpen(false)}
                     order={selectedOrderForNotes}
                     onSave={handleSaveNotes}
+                />
+            )}
+             {isSettingsModalOpen && !isLoadingSettings && (
+                <SettingsModal
+                    isOpen={isSettingsModalOpen}
+                    onClose={() => setIsSettingsModalOpen(false)}
+                    initialWhatsAppNumber={whatsAppNumber}
+                    onSave={handleSaveSettings}
                 />
             )}
         </>

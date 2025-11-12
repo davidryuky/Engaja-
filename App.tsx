@@ -28,6 +28,9 @@ const App: React.FC = () => {
   const [route, setRoute] = useState(window.location.hash);
   const [isLoading, setIsLoading] = useState(true);
 
+  // --- GLOBAL SETTINGS STATE ---
+  const [whatsappNumber, setWhatsappNumber] = useState('818075997250'); // Default value
+
   // Effect to handle hash changes for navigation
   useEffect(() => {
     const handleHashChange = () => {
@@ -78,6 +81,22 @@ const App: React.FC = () => {
       document.removeEventListener('mouseout', handleMouseOut);
     };
   }, [isExitIntentModalOpen, route]);
+
+  // Effect to fetch global settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch('/api/settings?key=whatsapp_number');
+            const data = await response.json();
+            if (data.success && data.value) {
+                setWhatsappNumber(data.value);
+            }
+        } catch (error) {
+            console.error("Could not fetch settings:", error);
+        }
+    };
+    fetchSettings();
+  }, []);
 
 
   // --- AUTH HANDLERS ---
@@ -134,7 +153,7 @@ const App: React.FC = () => {
       <Header onFreeTrialClick={() => setIsFreeTrialModalOpen(true)} />
       <main>
         <HeroSection />
-        <OrderSection />
+        <OrderSection whatsappNumber={whatsappNumber} />
         <AnimatedSection>
           <AdvantagesSection />
         </AnimatedSection>
@@ -148,19 +167,21 @@ const App: React.FC = () => {
           <TestimonialsSection />
         </AnimatedSection>
         <AnimatedSection>
-          <ContactSection />
+          <ContactSection whatsappNumber={whatsappNumber} />
         </AnimatedSection>
       </main>
       <Footer />
-      <WhatsAppButton />
+      <WhatsAppButton whatsappNumber={whatsappNumber} />
       <SocialProof />
       <FreeTrialModal 
         isOpen={isFreeTrialModalOpen} 
         onClose={() => setIsFreeTrialModalOpen(false)} 
+        whatsappNumber={whatsappNumber}
       />
       <ExitIntentModal
         isOpen={isExitIntentModalOpen}
         onClose={() => setIsExitIntentModalOpen(false)}
+        whatsappNumber={whatsappNumber}
       />
       <CookieConsent />
     </div>
