@@ -1,4 +1,3 @@
-
 // api/settings.js
 const mysql = require('mysql2/promise');
 
@@ -46,7 +45,12 @@ module.exports = async (req, res) => {
         return res.status(200).end();
     }
     
-    await ensureDbInitialized();
+    try {
+        await ensureDbInitialized();
+    } catch (dbError) {
+        console.error('Database Initialization Error (settings):', dbError);
+        return res.status(500).json({ success: false, message: 'Falha crítica ao inicializar o banco de dados.' });
+    }
 
     try {
         const connection = await pool.getConnection();
