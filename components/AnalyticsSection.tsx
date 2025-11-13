@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart2, TrendingUp, Layers, Package, Loader2 } from 'lucide-react';
+import { BarChart2, TrendingUp, Layers } from 'lucide-react';
 import { Order } from './DashboardPage';
 
 export const AnalyticsSection: React.FC = () => {
@@ -43,49 +43,30 @@ export const AnalyticsSection: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   }, [orders]);
 
-  // 2. Daily Volume (Last 7 days) - FIXED DATE LOGIC
+  // 2. Daily Volume (Last 7 days)
   const dailyStats = useMemo(() => {
-    // Create an array of the last 7 days labels (e.g. "27/10")
-    const last7DaysMap = new Map<string, number>();
-    const displayLabels: { rawDate: string; label: string }[] = [];
-
-    for (let i = 6; i >= 0; i--) {
+    const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      // Use local date string key "YYYY-MM-DD" for matching
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const key = `${year}-${month}-${day}`;
-      
-      last7DaysMap.set(key, 0);
-      displayLabels.push({
-          rawDate: key,
-          label: `${day}/${month}`
-      });
-    }
+      return d.toISOString().split('T')[0]; // YYYY-MM-DD
+    }).reverse();
 
-    // Iterate orders and match
+    const stats: Record<string, number> = {};
+    
+    // Initialize with 0
+    last7Days.forEach(date => { stats[date] = 0; });
+
     orders.forEach(order => {
-      // Convert UTC timestamp from DB to Local Date Object
-      const dateObj = new Date(order.created_at);
-      
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const day = String(dateObj.getDate()).padStart(2, '0');
-      const key = `${year}-${month}-${day}`;
-
-      if (last7DaysMap.has(key)) {
-        last7DaysMap.set(key, (last7DaysMap.get(key) || 0) + 1);
+      const dateKey = new Date(order.created_at).toISOString().split('T')[0];
+      if (stats[dateKey] !== undefined) {
+        stats[dateKey]++;
       }
     });
 
-    // Convert back to array for rendering
-    return displayLabels.map(item => ({
-        date: item.label,
-        count: last7DaysMap.get(item.rawDate) || 0
+    return last7Days.map(date => ({
+      date: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      count: stats[date] || 0
     }));
-
   }, [orders]);
 
   const totalSample = orders.length;
@@ -95,7 +76,7 @@ export const AnalyticsSection: React.FC = () => {
   if (isLoading) {
       return (
           <div className="animate-pulse bg-brand-dark-200 rounded-lg p-6 h-48 flex items-center justify-center text-slate-500">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" /> Carregando Inteligência de Dados...
+              Carregando Inteligência de Dados...
           </div>
       )
   }
@@ -109,43 +90,32 @@ export const AnalyticsSection: React.FC = () => {
         <h2 className="text-2xl font-bold text-white">Inteligência de Pedidos</h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* CARD 1: Total Analyzed */}
-        <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-xl p-6 shadow-lg flex flex-col justify-center items-center lg:col-span-1">
-            <div className="p-4 bg-brand-dark rounded-full mb-4 border border-brand-purple/20">
-                <Package className="w-8 h-8 text-brand-pink" />
-            </div>
-            <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider">Pedidos Recentes</h3>
-            <p className="text-4xl font-extrabold text-white mt-2">{totalSample}</p>
-            <p className="text-xs text-slate-500 mt-2 text-center px-4">Base de dados utilizada para gerar as métricas abaixo</p>
-        </div>
-
         {/* CHART 1: Platform Distribution (Horizontal Bars) */}
-        <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-xl p-6 shadow-lg lg:col-span-2">
+        <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-xl p-6 shadow-lg">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
               <Layers className="w-4 h-4 text-brand-purple" />
-              Ranking por Plataforma
+              Pedidos por Plataforma
             </h3>
+            <span className="text-xs text-slate-400 bg-brand-dark px-2 py-1 rounded">
+                Base: {totalSample} pedidos
+            </span>
           </div>
           
           <div className="space-y-4">
-            {platformStats.length > 0 ? platformStats.slice(0, 5).map((item, index) => (
-              <div key={item.name} className="relative group">
-                <div className="flex justify-between text-sm mb-1 relative z-10">
-                  <span className="font-medium text-slate-300 flex items-center gap-2">
-                    {index + 1}. {item.name}
-                  </span>
-                  <span className="text-white font-bold text-xs bg-brand-purple/40 px-2 py-0.5 rounded-full">{item.count}</span>
+            {platformStats.length > 0 ? platformStats.map((item, index) => (
+              <div key={item.name} className="relative">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-medium text-slate-300">{item.name}</span>
+                  <span className="text-brand-pink font-bold">{item.count}</span>
                 </div>
-                <div className="w-full bg-brand-dark h-2.5 rounded-full overflow-hidden relative">
+                <div className="w-full bg-brand-dark h-3 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-brand-purple to-brand-pink rounded-full transition-all duration-1000 ease-out relative"
+                    className="h-full bg-gradient-to-r from-brand-purple to-brand-pink rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${(item.count / maxPlatformCount) * 100}%` }}
-                  >
-                      <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                  </div>
+                  ></div>
                 </div>
               </div>
             )) : (
@@ -154,31 +124,31 @@ export const AnalyticsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* CHART 2: Daily Volume (Vertical Bars) - Full Width on bottom */}
-        <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-xl p-6 shadow-lg flex flex-col lg:col-span-3">
+        {/* CHART 2: Daily Volume (Vertical Bars) */}
+        <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-xl p-6 shadow-lg flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-green-400" />
-              Volume de Vendas (Últimos 7 Dias)
+              Volume Diário (7 Dias)
             </h3>
           </div>
 
-          <div className="flex-1 flex items-end justify-around gap-2 h-[200px] pt-4 pb-2 border-b border-brand-purple/10">
+          <div className="flex-1 flex items-end justify-between gap-2 min-h-[200px] pt-4 pb-2">
             {dailyStats.map((item, index) => (
-              <div key={item.date} className="flex flex-col items-center flex-1 group relative h-full justify-end">
-                {/* Tooltip */}
-                <div className="mb-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 bg-brand-dark text-white text-xs font-bold px-3 py-1.5 rounded border border-brand-purple/50 absolute -top-10 whitespace-nowrap z-20 shadow-xl">
+              <div key={item.date} className="flex flex-col items-center w-full group relative">
+                {/* Tooltip on hover */}
+                <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-white text-brand-dark text-xs font-bold px-2 py-1 rounded pointer-events-none whitespace-nowrap">
                     {item.count} pedidos
                 </div>
                 
                 <div 
-                    className="w-full max-w-[40px] bg-brand-purple/20 hover:bg-brand-pink/80 rounded-t-sm transition-all duration-500 ease-out relative overflow-hidden group-hover:shadow-[0_0_15px_rgba(230,119,175,0.5)]"
-                    style={{ height: `${Math.max((item.count / maxDailyCount) * 100, 2)}%` }} 
+                    className="w-full max-w-[30px] bg-brand-purple/30 hover:bg-brand-pink/80 rounded-t-md transition-all duration-500 ease-out relative overflow-hidden"
+                    style={{ height: `${Math.max((item.count / maxDailyCount) * 100, 5)}%` }} // Min height 5% for visuals
                 >
-                    {/* Bar gradient */}
-                    <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-t from-brand-purple/40 via-brand-purple/60 to-transparent opacity-70 group-hover:opacity-0 transition-opacity"></div>
+                    {/* Overlay gradient */}
+                    <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-brand-dark/50 to-transparent"></div>
                 </div>
-                <span className="text-xs text-slate-500 mt-3 font-mono">{item.date}</span>
+                <span className="text-xs text-slate-400 mt-2">{item.date}</span>
               </div>
             ))}
           </div>
