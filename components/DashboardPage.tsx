@@ -5,7 +5,8 @@ import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal';
 import { OrderNotesModal } from './OrderNotesModal';
 import { AddSupplierModal } from './AddSupplierModal';
-import { SettingsModal } from './SettingsModal'; // Import the new modal
+import { SettingsModal } from './SettingsModal';
+import { AnalyticsSection } from './AnalyticsSection'; // Import Analytics
 
 // --- TYPE DEFINITIONS ---
 export interface Order { // Exporting for use in other components
@@ -357,7 +358,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             setIsNotesModalOpen(false);
         } catch (err) {
             console.error("Failed to save notes:", err);
-            alert('Não foi possível salvar as anotações. Tente novamente.');
+            alert('Não foi possível atualizar as anotações.');
             throw err;
         }
     };
@@ -700,6 +701,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                             </div>
                         </div>
                     )}
+
+                    {/* --- ANALYTICS DASHBOARD (Last item in Main) --- */}
+                    <AnalyticsSection />
 
                 </main>
             </div>

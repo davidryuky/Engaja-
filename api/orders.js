@@ -119,9 +119,12 @@ module.exports = async (req, res) => {
             // --- GET: Fetch all orders for the dashboard with pagination and filtering ---
             if (req.method === 'GET') {
                 const page = parseInt(req.query.page, 10) || 1;
+                // Allow custom limit via query, default to 10, max 500 for safety
+                let limit = parseInt(req.query.limit, 10) || 10;
+                if (limit > 500) limit = 500;
+
                 const { payment_status, progress_status, completion_status, problem_status, search } = req.query;
 
-                const limit = 10;
                 const offset = (page - 1) * limit;
 
                 let whereClauses = [];
