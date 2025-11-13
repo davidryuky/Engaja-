@@ -119,7 +119,7 @@ module.exports = async (req, res) => {
             // --- GET: Fetch all orders for the dashboard with pagination and filtering ---
             if (req.method === 'GET') {
                 const page = parseInt(req.query.page, 10) || 1;
-                // Allow custom limit via query, default to 10, max 500 for safety
+                // Allow custom limit via query. Default 10, allow up to 500 for analytics
                 let limit = parseInt(req.query.limit, 10) || 10;
                 if (limit > 500) limit = 500;
 

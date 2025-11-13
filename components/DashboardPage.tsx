@@ -6,7 +6,7 @@ import { OrderDetailsModal } from './OrderDetailsModal';
 import { OrderNotesModal } from './OrderNotesModal';
 import { AddSupplierModal } from './AddSupplierModal';
 import { SettingsModal } from './SettingsModal';
-import { AnalyticsSection } from './AnalyticsSection'; // Import Analytics
+import { AnalyticsSection } from './AnalyticsSection';
 
 // --- TYPE DEFINITIONS ---
 export interface Order { // Exporting for use in other components
@@ -701,7 +701,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                             </div>
                         </div>
                     )}
-
+                    
                     {/* --- ANALYTICS DASHBOARD (Last item in Main) --- */}
                     <AnalyticsSection />
 
