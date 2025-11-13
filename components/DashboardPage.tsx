@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, Settings, CheckCircle, AlertOctagon } from 'lucide-react';
+import { LogOut, Trash2, ChevronLeft, ChevronRight, RefreshCw, Loader2, AlertTriangle, QrCode, Eye, Filter, FileText, Star, PlusCircle, Settings, CheckCircle, AlertOctagon, Search } from 'lucide-react';
 import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal';
 import { OrderNotesModal } from './OrderNotesModal';
@@ -180,6 +180,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalOrders, setTotalOrders] = useState(0);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Filter state
     const [filters, setFilters] = useState({
@@ -210,12 +211,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
 
-    const fetchOrders = useCallback(async (page: number, currentFilters: typeof filters) => {
+    const fetchOrders = useCallback(async (page: number, currentFilters: typeof filters, search: string) => {
         setIsLoading(true);
         setError(null);
         try {
             const queryParams = new URLSearchParams({
                 page: String(page),
+                search: search,
                 ...currentFilters
             }).toString();
             
@@ -277,9 +279,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         }
     }, []);
 
+    // UseEffect for Fetching Orders with Debounce
     useEffect(() => {
-        fetchOrders(currentPage, filters);
-    }, [currentPage, filters, fetchOrders]);
+        const timer = setTimeout(() => {
+            fetchOrders(currentPage, filters, searchQuery);
+        }, 500); // 500ms debounce for search
+        return () => clearTimeout(timer);
+    }, [currentPage, filters, searchQuery, fetchOrders]);
     
     useEffect(() => {
         fetchSuppliers();
@@ -308,7 +314,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         } catch (err) {
             console.error("Update failed:", err);
             alert('Não foi possível atualizar o pedido. A página será recarregada.');
-            fetchOrders(currentPage, filters);
+            fetchOrders(currentPage, filters, searchQuery);
             throw err;
         }
     };
@@ -324,7 +330,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
 
                 const data = await response.json();
                 if (data.success) {
-                    fetchOrders(1, filters); // Refresh from page 1 after deletion
+                    fetchOrders(1, filters, searchQuery); // Refresh from page 1 after deletion
                 } else {
                     throw new Error(data.message || 'Falha ao apagar o pedido.');
                 }
@@ -531,49 +537,68 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
 
                     <div className="mb-6 flex justify-between items-center flex-wrap gap-4">
                         <h2 className="text-2xl font-bold">Gerenciamento de Pedidos ({totalOrders})</h2>
-                        <button onClick={() => fetchOrders(currentPage, filters)} disabled={isLoading} className="text-slate-300 hover:text-white transition-colors p-2">
+                        <button onClick={() => fetchOrders(currentPage, filters, searchQuery)} disabled={isLoading} className="text-slate-300 hover:text-white transition-colors p-2">
                             <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
 
-                    {/* --- FILTERS --- */}
-                     <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 mb-6 flex flex-col md:flex-row md:items-center gap-4">
-                        <div className="flex items-center gap-2 text-slate-300 flex-shrink-0">
-                           <Filter className="w-5 h-5" />
-                           <span className="font-semibold">Filtros:</span>
+                    {/* --- FILTERS & SEARCH TOOLBAR --- */}
+                     <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 mb-6 flex flex-col lg:flex-row justify-between gap-4">
+                         {/* FILTERS SECTION */}
+                        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                            <div className="flex items-center gap-2 text-slate-300 flex-shrink-0">
+                               <Filter className="w-5 h-5" />
+                               <span className="font-semibold">Filtros:</span>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-4 flex-wrap w-full md:w-auto">
+                                 <div>
+                                     <label htmlFor="payment_status_filter" className="sr-only">Filtrar por Pagamento</label>
+                                     <select name="payment_status" id="payment_status_filter" value={filters.payment_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
+                                        <option value="all">Pagamento: Todos</option>
+                                        <option value="Aguardando Pagamento">Aguardando</option>
+                                        <option value="Pago">Pago</option>
+                                     </select>
+                                </div>
+                                 <div>
+                                     <label htmlFor="progress_status_filter" className="sr-only">Filtrar por Progresso</label>
+                                     <select name="progress_status" id="progress_status_filter" value={filters.progress_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
+                                        <option value="all">Progresso: Todos</option>
+                                        <option value="Parado">Parado</option>
+                                        <option value="Iniciado">Iniciado</option>
+                                     </select>
+                                </div>
+                                 <div>
+                                    <label htmlFor="completion_status_filter" className="sr-only">Filtrar por Finalização</label>
+                                     <select name="completion_status" id="completion_status_filter" value={filters.completion_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
+                                        <option value="all">Finalização: Todos</option>
+                                        <option value="Incompleto">Incompleto</option>
+                                        <option value="Concluido">Concluído</option>
+                                     </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="problem_status_filter" className="sr-only">Filtrar por Problema</label>
+                                     <select name="problem_status" id="problem_status_filter" value={filters.problem_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
+                                        <option value="all">Problemas: Todos</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="Problema">Com Problema</option>
+                                     </select>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
-                             <div>
-                                 <label htmlFor="payment_status_filter" className="sr-only">Filtrar por Pagamento</label>
-                                 <select name="payment_status" id="payment_status_filter" value={filters.payment_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
-                                    <option value="all">Pagamento: Todos</option>
-                                    <option value="Aguardando Pagamento">Aguardando</option>
-                                    <option value="Pago">Pago</option>
-                                 </select>
-                            </div>
-                             <div>
-                                 <label htmlFor="progress_status_filter" className="sr-only">Filtrar por Progresso</label>
-                                 <select name="progress_status" id="progress_status_filter" value={filters.progress_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
-                                    <option value="all">Progresso: Todos</option>
-                                    <option value="Parado">Parado</option>
-                                    <option value="Iniciado">Iniciado</option>
-                                 </select>
-                            </div>
-                             <div>
-                                <label htmlFor="completion_status_filter" className="sr-only">Filtrar por Finalização</label>
-                                 <select name="completion_status" id="completion_status_filter" value={filters.completion_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
-                                    <option value="all">Finalização: Todos</option>
-                                    <option value="Incompleto">Incompleto</option>
-                                    <option value="Concluido">Concluído</option>
-                                 </select>
-                            </div>
-                            <div>
-                                <label htmlFor="problem_status_filter" className="sr-only">Filtrar por Problema</label>
-                                 <select name="problem_status" id="problem_status_filter" value={filters.problem_status} onChange={handleFilterChange} className="bg-brand-dark border border-brand-purple/50 rounded-md px-3 py-1.5 text-sm w-full">
-                                    <option value="all">Problemas: Todos</option>
-                                    <option value="Normal">Normal</option>
-                                    <option value="Problema">Com Problema</option>
-                                 </select>
+                        
+                        {/* SEARCH SECTION */}
+                        <div className="w-full lg:w-auto relative">
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-pink transition-colors duration-300" />
+                                </div>
+                                <input
+                                    type="text"
+                                    className="bg-brand-dark border border-brand-purple/50 rounded-md pl-10 pr-3 py-1.5 text-sm w-full lg:w-64 focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink transition-all duration-300 placeholder:text-slate-500"
+                                    placeholder="Buscar por ID ou Link..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
                             </div>
                         </div>
                     </div>

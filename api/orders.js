@@ -119,7 +119,7 @@ module.exports = async (req, res) => {
             // --- GET: Fetch all orders for the dashboard with pagination and filtering ---
             if (req.method === 'GET') {
                 const page = parseInt(req.query.page, 10) || 1;
-                const { payment_status, progress_status, completion_status, problem_status } = req.query;
+                const { payment_status, progress_status, completion_status, problem_status, search } = req.query;
 
                 const limit = 10;
                 const offset = (page - 1) * limit;
@@ -142,6 +142,13 @@ module.exports = async (req, res) => {
                 if (problem_status && problem_status !== 'all') {
                     whereClauses.push('problem_status = ?');
                     queryParams.push(problem_status);
+                }
+
+                // Search functionality
+                if (search) {
+                    whereClauses.push('(public_id LIKE ? OR link LIKE ?)');
+                    const searchParam = `%${search}%`;
+                    queryParams.push(searchParam, searchParam);
                 }
 
                 const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
