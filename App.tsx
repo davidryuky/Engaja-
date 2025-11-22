@@ -14,7 +14,6 @@ import { AnimatedSection } from './components/AnimatedSection';
 import { SocialProof } from './components/SocialProof';
 import { FreeTrialModal } from './components/FreeTrialModal';
 import { ExitIntentModal } from './components/ExitIntentModal';
-import { CookieConsent } from './components/CookieConsent';
 import { LoginPage } from './components/LoginPage';
 import { DashboardPage } from './components/DashboardPage';
 
@@ -188,7 +187,6 @@ const App: React.FC = () => {
         onClose={() => setIsExitIntentModalOpen(false)}
         whatsappNumber={whatsappNumber}
       />
-      <CookieConsent />
     </div>
   );
 };

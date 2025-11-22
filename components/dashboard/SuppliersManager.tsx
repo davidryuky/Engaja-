@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, PlusCircle, AlertTriangle, Trash2, Star } from 'lucide-react';
+import { Loader2, PlusCircle, AlertTriangle, Trash2, Star, ExternalLink } from 'lucide-react';
 import { Supplier } from './DashboardTypes';
 import { AddSupplierModal } from '../AddSupplierModal';
 
@@ -23,7 +23,6 @@ export const SuppliersManager: React.FC = () => {
                 throw new Error(data.message);
             }
         } catch (err: any) {
-            // Silent fail in some cases or show error
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -44,10 +43,9 @@ export const SuppliersManager: React.FC = () => {
             const data = await response.json();
             if (!data.success) throw new Error(data.message);
             
-            // Otimistic Update or Refetch
             setSuppliers(prev => [...prev, data.supplier].sort((a, b) => Number(b.is_favorited) - Number(a.is_favorited)));
         } catch (err: any) {
-            throw err; // To be handled by modal
+            throw err;
         }
     };
 
@@ -72,7 +70,7 @@ export const SuppliersManager: React.FC = () => {
     };
 
     const handleDeleteSupplier = async (id: number) => {
-        if (window.confirm('Tem certeza que deseja apagar este fornecedor?')) {
+        if (window.confirm('Apagar fornecedor?')) {
             const originalSuppliers = [...suppliers];
             setSuppliers(suppliers.filter(s => s.id !== id));
             try {
@@ -91,68 +89,82 @@ export const SuppliersManager: React.FC = () => {
     };
 
     return (
-        <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-4 md:p-6 mb-8 shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                    Fornecedores
-                    <span className="text-sm font-normal text-slate-400 bg-brand-dark px-2 py-1 rounded-full border border-brand-purple/20">
+        <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-lg p-3 mb-6 shadow-lg">
+            <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider">Fornecedores</h2>
+                    <span className="text-[10px] font-mono text-slate-400 bg-brand-dark px-1.5 py-0.5 rounded border border-brand-purple/20">
                         {suppliers.length}
                     </span>
-                </h2>
+                </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="flex items-center justify-center gap-2 bg-brand-purple hover:bg-opacity-80 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg shadow-brand-purple/20"
+                    className="text-xs flex items-center gap-1 text-brand-pink hover:text-white transition-colors"
                 >
-                    <PlusCircle className="w-5 h-5" />
-                    <span className="hidden sm:inline">Adicionar</span>
+                    <PlusCircle className="w-3 h-3" />
+                    Adicionar
                 </button>
             </div>
 
             {error && (
-                <div className="bg-red-500/20 border border-red-500/50 text-red-300 p-3 rounded-lg mb-4 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
+                <div className="bg-red-500/20 border border-red-500/50 text-red-300 p-2 rounded mb-2 text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-3 h-3" />
                     <span>{error}</span>
                 </div>
             )}
 
             {isLoading ? (
-                <div className="flex justify-center p-8">
-                    <Loader2 className="w-8 h-8 animate-spin text-brand-pink" />
+                <div className="flex justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-brand-pink" />
                 </div>
             ) : suppliers.length === 0 ? (
-                <div className="text-center border-2 border-dashed border-brand-purple/20 rounded-lg p-8">
-                    <p className="text-slate-400">Nenhum fornecedor cadastrado.</p>
+                <div className="text-center py-4 text-xs text-slate-500">
+                    <p>Nenhum fornecedor.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
                     {suppliers.map(supplier => (
                         <div
                             key={supplier.id}
-                            className={`relative flex items-center gap-2 p-2 rounded-lg transition-colors duration-300 border border-brand-purple/30 group ${supplier.is_favorited ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-brand-dark hover:bg-brand-dark/80'}`}
+                            className={`group relative flex items-center justify-between p-1.5 rounded-md transition-all duration-200 border ${supplier.is_favorited ? 'bg-yellow-500/5 border-yellow-500/30' : 'bg-brand-dark border-brand-purple/10 hover:border-brand-purple/40'}`}
                         >
-                            <button
-                                onClick={() => handleToggleFavorite(supplier.id, !supplier.is_favorited)}
-                                className="p-1 rounded-full hover:bg-slate-500/20 flex-shrink-0 transition-transform hover:scale-110"
-                                title={supplier.is_favorited ? 'Desfavoritar' : 'Favoritar'}
-                            >
-                                <Star className={`w-4 h-4 transition-colors ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                            </button>
-                            <a
-                                href={supplier.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-grow text-sm text-center text-slate-200 font-medium hover:text-brand-pink truncate"
-                                title={supplier.name}
-                            >
-                                {supplier.name}
-                            </a>
-                            <button
-                                onClick={() => handleDeleteSupplier(supplier.id)}
-                                className="p-1 rounded-full text-slate-600 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0 transition-colors"
-                                title="Apagar Fornecedor"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                <button
+                                    onClick={() => handleToggleFavorite(supplier.id, !supplier.is_favorited)}
+                                    className="focus:outline-none"
+                                    title={supplier.is_favorited ? 'Desfavoritar' : 'Favoritar'}
+                                >
+                                    <Star className={`w-3 h-3 ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-600 hover:text-slate-400'}`} />
+                                </button>
+                                <a
+                                    href={supplier.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[11px] text-slate-300 hover:text-brand-pink truncate font-medium"
+                                    title={supplier.name}
+                                >
+                                    {supplier.name}
+                                </a>
+                            </div>
+                            
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <a
+                                    href={supplier.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-slate-500 hover:text-brand-pink"
+                                    title="Abrir Link"
+                                >
+                                   <ExternalLink className="w-3 h-3" />
+                                </a>
+                                <button
+                                    onClick={() => handleDeleteSupplier(supplier.id)}
+                                    className="text-slate-600 hover:text-red-400"
+                                    title="Remover"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
