@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { FileText, Eye, QrCode, Trash2, Loader2, Share2, Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileText, Eye, QrCode, Trash2, Loader2, Share2, Layers, Copy, Check, ExternalLink } from 'lucide-react';
 import { Order, StatusType } from './DashboardTypes';
 import { StatusButton, ProblemStatusButton } from './StatusButtons';
 
@@ -14,6 +14,48 @@ interface OrdersTableProps {
     onOpenPix: (order: Order) => void;
     onOpenShare: (order: Order) => void;
 }
+
+// Sub-componente para gerenciar o estado de "Copiado" individualmente
+const LinkCell = ({ link }: { link: string }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = (e: React.MouseEvent) => {
+        e.preventDefault(); // Evita navegação ao clicar para copiar
+        navigator.clipboard.writeText(link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="flex items-center gap-2 min-w-0 flex-1 group/link">
+            {/* Botão de Copiar (Texto do Link) */}
+            <button
+                onClick={handleCopy}
+                className="text-cyan-500 hover:text-cyan-300 truncate font-mono opacity-90 hover:opacity-100 text-left transition-all max-w-full relative"
+                title="Clique para copiar o link"
+            >
+                {copied ? (
+                    <span className="flex items-center gap-1 text-emerald-400 font-bold animate-pulse">
+                        <Check className="w-3 h-3" /> Copiado!
+                    </span>
+                ) : (
+                    <span className="truncate block">{link}</span>
+                )}
+            </button>
+
+            {/* Botão para Abrir em Nova Aba (Só aparece no hover ou se for mobile) */}
+            <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-600 hover:text-white opacity-0 group-hover/link:opacity-100 transition-opacity p-1 rounded-md hover:bg-white/10 flex-shrink-0"
+                title="Abrir link em nova aba"
+            >
+                <ExternalLink className="w-3 h-3" />
+            </a>
+        </div>
+    );
+};
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
     orders,
@@ -110,19 +152,13 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                                             {order.platform}
                                         </span>
 
-                                        <span className="text-slate-200 font-medium truncate flex-shrink-0 max-w-[120px] xl:max-w-[180px]" title={order.service}>
+                                        <span className="text-slate-200 font-medium truncate flex-shrink-0 max-w-[100px] xl:max-w-[150px]" title={order.service}>
                                             {order.service}
                                         </span>
                                         
-                                        <a 
-                                            href={order.link} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="text-cyan-500 hover:text-cyan-300 truncate hover:underline font-mono opacity-80 min-w-0 flex-1"
-                                            title={order.link}
-                                        >
-                                            {order.link}
-                                        </a>
+                                        <span className="text-slate-600 select-none">•</span>
+
+                                        <LinkCell link={order.link} />
                                     </div>
                                 </div>
 
