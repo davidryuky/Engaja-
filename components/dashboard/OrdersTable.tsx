@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, Eye, QrCode, Trash2, Loader2, ExternalLink, Calendar, Layers, MoreHorizontal } from 'lucide-react';
+import { FileText, Eye, QrCode, Trash2, Loader2, Share2, Layers } from 'lucide-react';
 import { Order, StatusType } from './DashboardTypes';
 import { StatusButton, ProblemStatusButton } from './StatusButtons';
 
@@ -12,6 +12,7 @@ interface OrdersTableProps {
     onOpenNotes: (order: Order) => void;
     onOpenDetails: (order: Order) => void;
     onOpenPix: (order: Order) => void;
+    onOpenShare: (order: Order) => void;
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -21,11 +22,11 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     onDelete,
     onOpenNotes,
     onOpenDetails,
-    onOpenPix
+    onOpenPix,
+    onOpenShare
 }) => {
 
-    // Grid Template Otimizado: Aumentei as larguras das colunas finais (180px, 110px, 160px)
-    // para acomodar os titulos completos e dar mais respiro aos botões.
+    // Grid Template Otimizado
     const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_180px_180px_180px_110px_160px]";
 
     return (
@@ -61,7 +62,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                         const isCompleted = order.completion_status === 'Concluido';
 
                         // Row Background Logic
-                        // Alteração: Cores muito mais fortes e borda lateral
                         let rowBgClass = "hover:bg-white/[0.02] border-l-4 border-transparent";
                         
                         if (isProblem) {
@@ -82,7 +82,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                                 {/* 1. ID */}
                                 <div className="flex justify-between w-full lg:w-auto lg:block mb-1 lg:mb-0">
                                     <span className="font-mono text-xs font-medium text-slate-400">#{order.public_id}</span>
-                                    {/* Mobile Date shown here */}
                                     <span className="lg:hidden text-[10px] text-slate-600">
                                         {new Date(order.created_at).toLocaleDateString('pt-BR')}
                                     </span>
@@ -107,17 +106,14 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                                 {/* 4. Service & Link (LINEAR) */}
                                 <div className="w-full mb-2 lg:mb-0 min-w-0 pr-4">
                                     <div className="flex items-center gap-2 w-full text-xs">
-                                        {/* Plataforma */}
                                         <span className="font-bold uppercase text-slate-500 bg-black/20 px-1.5 py-0.5 rounded border border-white/5 flex-shrink-0 text-[10px]">
                                             {order.platform}
                                         </span>
 
-                                        {/* Serviço */}
                                         <span className="text-slate-200 font-medium truncate flex-shrink-0 max-w-[120px] xl:max-w-[180px]" title={order.service}>
                                             {order.service}
                                         </span>
                                         
-                                        {/* Link */}
                                         <a 
                                             href={order.link} 
                                             target="_blank" 
@@ -154,6 +150,13 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 
                                 {/* 9. Actions */}
                                 <div className="w-full lg:w-auto flex justify-end lg:justify-center gap-1 border-t border-white/5 pt-2 lg:pt-0 lg:border-0">
+                                    <ActionIcon 
+                                        onClick={() => onOpenShare(order)} 
+                                        icon={Share2} 
+                                        activeColor="text-cyan-400"
+                                        active={true}
+                                        label="Compartilhar"
+                                    />
                                     <ActionIcon 
                                         onClick={() => onOpenNotes(order)} 
                                         icon={FileText} 
