@@ -60,10 +60,16 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                         const isProblem = order.problem_status === 'Problema';
                         const isCompleted = order.completion_status === 'Concluido';
 
-                        // Row Background Logic
-                        let rowBgClass = "hover:bg-white/[0.02]";
-                        if (isProblem) rowBgClass = "bg-red-500/[0.05] hover:bg-red-500/[0.08]";
-                        else if (isCompleted) rowBgClass = "bg-green-500/[0.02] hover:bg-green-500/[0.05]";
+                        // Row Background Logic (Intensificado)
+                        let rowBgClass = "hover:bg-white/[0.02] border-l-4 border-transparent";
+                        
+                        if (isProblem) {
+                            // Vermelho Forte (30% opacidade + borda sólida)
+                            rowBgClass = "bg-red-600/30 hover:bg-red-600/40 border-l-4 border-red-600"; 
+                        } else if (isCompleted) {
+                            // Verde Forte (30% opacidade + borda sólida)
+                            rowBgClass = "bg-emerald-600/30 hover:bg-emerald-600/40 border-l-4 border-emerald-600";
+                        }
 
                         return (
                             <div 

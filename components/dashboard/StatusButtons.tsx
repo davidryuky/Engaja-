@@ -140,7 +140,7 @@ export const ProblemStatusButton: React.FC<{
                 flex items-center justify-center w-full h-7 rounded-md transition-all duration-200
                 ${isProblem 
                     ? 'bg-red-600 text-white font-bold shadow-[0_0_12px_rgba(220,38,38,0.6)] hover:bg-red-500' 
-                    : 'text-slate-600 hover:text-slate-400 hover:bg-white/5'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/10' // Increased visibility (lighter gray)
                 }
             `}
             title={isProblem ? 'Resolver Problema' : 'Marcar Problema'}
@@ -148,7 +148,7 @@ export const ProblemStatusButton: React.FC<{
             {isUpdating ? (
                 <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
-                isProblem ? <AlertTriangle className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4 opacity-20" />
+                isProblem ? <AlertTriangle className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4 opacity-70" /> // Increased opacity for better visibility
             )}
         </button>
     );
