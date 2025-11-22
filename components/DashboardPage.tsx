@@ -53,7 +53,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<Order | null>(null);
     
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-    const [whatsappSetting, setWhatsappSetting] = useState('');
+    
+    // Settings Data
+    const [settings, setSettings] = useState({
+        whatsapp_number: '',
+        exit_intent_enabled: true
+    });
 
     // --- FETCH SETTINGS ---
     const fetchSettings = useCallback(async () => {
@@ -61,7 +66,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             const response = await fetch('/api/settings');
             if (response.ok) {
                 const data = await response.json();
-                if (data.success) setWhatsappSetting(data.value || '');
+                if (data.success && data.settings) {
+                    setSettings({
+                        whatsapp_number: data.settings.whatsapp_number || '',
+                        exit_intent_enabled: data.settings.exit_intent_enabled === 'true'
+                    });
+                }
             }
         } catch (error) { /* Silent fail */ }
     }, []);
@@ -273,7 +283,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                 <PixModal
                     isOpen={isPixModalOpen}
                     onClose={() => setIsPixModalOpen(false)}
-                    // @ts-ignore - Compatibility with refactored types
+                    // @ts-ignore
                     order={selectedOrderForPix}
                 />
             )}
@@ -298,7 +308,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                 <SettingsModal
                     isOpen={isSettingsModalOpen}
                     onClose={() => setIsSettingsModalOpen(false)}
-                    initialValue={whatsappSetting}
+                    initialData={settings}
                     onSaveSuccess={fetchSettings}
                 />
             )}

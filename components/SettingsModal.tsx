@@ -5,20 +5,26 @@ import { X as CloseIcon, Loader2, Save } from 'lucide-react';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialValue: string;
+  initialData: {
+      whatsapp_number: string;
+      exit_intent_enabled: boolean;
+  };
   onSaveSuccess: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialValue, onSaveSuccess }) => {
-  const [whatsappNumber, setWhatsappNumber] = useState(initialValue);
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
+  const [whatsappNumber, setWhatsappNumber] = useState(initialData.whatsapp_number || '');
+  const [exitIntentEnabled, setExitIntentEnabled] = useState(initialData.exit_intent_enabled);
+  
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Reset state when modal is opened with a new value
-    setWhatsappNumber(initialValue);
+    // Sync state when props change or modal opens
+    setWhatsappNumber(initialData.whatsapp_number || '');
+    setExitIntentEnabled(initialData.exit_intent_enabled);
     setError('');
-  }, [initialValue, isOpen]);
+  }, [initialData, isOpen]);
   
   if (!isOpen) {
     return null;
@@ -37,7 +43,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ number: whatsappNumber }),
+        body: JSON.stringify({ 
+            whatsapp_number: whatsappNumber,
+            exit_intent_enabled: String(exitIntentEnabled)
+        }),
       });
       const data = await response.json();
       if (!response.ok || !data.success) {
@@ -79,7 +88,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
           Configurações do Site
         </h2>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* WhatsApp Setting */}
           <div>
             <label htmlFor="whatsappNumber" className="block text-slate-300 text-sm font-bold mb-2">
               Número de WhatsApp
@@ -98,7 +108,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
             </p>
           </div>
 
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          <div className="h-px bg-brand-purple/20"></div>
+
+          {/* Exit Intent Toggle */}
+          <div className="flex items-center justify-between">
+              <div>
+                  <label className="block text-slate-300 text-sm font-bold mb-1">
+                      Pop-up de Saída
+                  </label>
+                  <p className="text-xs text-slate-400">
+                      Exibir oferta de retenção quando o usuário tenta sair da página ("Espere! Não vá ainda...").
+                  </p>
+              </div>
+              <button
+                onClick={() => setExitIntentEnabled(!exitIntentEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:ring-offset-2 focus:ring-offset-brand-dark ${
+                    exitIntentEnabled ? 'bg-green-500' : 'bg-slate-600'
+                }`}
+                disabled={isSaving}
+              >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+                        exitIntentEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+              </button>
+          </div>
+
+          {error && <p className="text-red-400 text-sm text-center bg-red-500/10 p-2 rounded border border-red-500/20">{error}</p>}
 
           <div className="pt-4">
             <button

@@ -29,23 +29,29 @@ const App: React.FC = () => {
 
   // --- SETTINGS STATE ---
   const [whatsappNumber, setWhatsappNumber] = useState('818075997250'); // Default fallback
+  const [isExitIntentEnabled, setIsExitIntentEnabled] = useState(true); // Default enabled
 
-  // Effect to fetch global settings like WhatsApp number
+  // Effect to fetch global settings
   useEffect(() => {
     const fetchSettings = async () => {
         try {
             const response = await fetch('/api/settings');
             
-            // Se a resposta for OK (200-299), processa o JSON
             if (response.ok) {
                 const data = await response.json();
-                if (data.success && data.value) {
-                    setWhatsappNumber(data.value);
+                if (data.success && data.settings) {
+                    // Update WhatsApp
+                    if (data.settings.whatsapp_number) {
+                        setWhatsappNumber(data.settings.whatsapp_number);
+                    }
+                    // Update Exit Intent Status
+                    if (data.settings.exit_intent_enabled !== undefined) {
+                        setIsExitIntentEnabled(data.settings.exit_intent_enabled === 'true');
+                    }
                 }
             } 
-            // Se for 404 (Preview) ou outro erro, falha silenciosamente e usa o padrão
         } catch (error) {
-            // Silently ignore errors to keep console clean in preview/dev modes
+            // Silently ignore errors in dev/preview
         }
     };
     fetchSettings();
@@ -78,6 +84,9 @@ const App: React.FC = () => {
 
   // Effect for the exit intent modal
   useEffect(() => {
+    // If disabled by admin, do not attach listener
+    if (!isExitIntentEnabled) return;
+
     const handleMouseOut = (e: MouseEvent) => {
       // Only show on homepage
       if (route !== '' && route !== '#home' && route !== '#') return;
@@ -100,7 +109,7 @@ const App: React.FC = () => {
     return () => {
       document.removeEventListener('mouseout', handleMouseOut);
     };
-  }, [isExitIntentModalOpen, route]);
+  }, [isExitIntentModalOpen, route, isExitIntentEnabled]);
 
 
   // --- AUTH HANDLERS ---

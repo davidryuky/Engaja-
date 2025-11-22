@@ -31,10 +31,17 @@ async function initializeDatabase() {
                 setting_value TEXT NOT NULL
             )
         `);
-        // Insert a default value if it doesn't exist, without overwriting
+        
+        // Insert default values if they don't exist
+        // WhatsApp default
         await connection.execute(`
             INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('whatsapp_number', '818075997250')
         `);
+        // Exit Intent default (enabled by default 'true')
+        await connection.execute(`
+            INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('exit_intent_enabled', 'true')
+        `);
+
     } finally {
         connection.release();
     }
@@ -61,40 +68,45 @@ module.exports = async (req, res) => {
     }
     
     try {
-        // Ensure DB is ready before proceeding. This is now safe.
         await ensureDbInitialized();
         const connection = await getPool().getConnection();
 
         try {
-            // GET: Fetch a setting
+            // GET: Fetch all settings
             if (req.method === 'GET') {
-                const [[row]] = await connection.execute(
-                    "SELECT setting_value FROM settings WHERE setting_key = 'whatsapp_number'"
-                );
+                const [rows] = await connection.execute("SELECT * FROM settings");
                 
-                if (row) {
-                    return res.status(200).json({ success: true, value: row.setting_value });
-                } else {
-                    return res.status(404).json({ success: false, message: 'Configuração não encontrada.' });
-                }
+                // Convert array of rows to a single object { key: value }
+                const settings = rows.reduce((acc, row) => {
+                    acc[row.setting_key] = row.setting_value;
+                    return acc;
+                }, {});
+                
+                return res.status(200).json({ success: true, settings });
             }
 
-            // PUT: Update a setting
+            // PUT: Update settings (can accept multiple keys)
             if (req.method === 'PUT') {
-                const { number } = req.body;
-                if (number === undefined) {
-                    return res.status(400).json({ success: false, message: 'O número é obrigatório.' });
+                const updates = req.body; // Expect object like { whatsapp_number: '...', exit_intent_enabled: '...' }
+                
+                if (!updates || Object.keys(updates).length === 0) {
+                    return res.status(400).json({ success: false, message: 'Nenhum dado para atualizar.' });
                 }
 
-                // Use INSERT ... ON DUPLICATE KEY UPDATE to handle both new and existing settings
-                await connection.execute(
-                    `INSERT INTO settings (setting_key, setting_value) 
-                     VALUES ('whatsapp_number', ?) 
-                     ON DUPLICATE KEY UPDATE setting_value = ?`,
-                    [number, number]
-                );
+                const keys = Object.keys(updates);
                 
-                return res.status(200).json({ success: true, message: 'Configuração salva com sucesso.' });
+                // Process updates in parallel
+                await Promise.all(keys.map(key => {
+                    const value = String(updates[key]); // Ensure it's a string
+                    return connection.execute(
+                        `INSERT INTO settings (setting_key, setting_value) 
+                         VALUES (?, ?) 
+                         ON DUPLICATE KEY UPDATE setting_value = ?`,
+                        [key, value, value]
+                    );
+                }));
+                
+                return res.status(200).json({ success: true, message: 'Configurações salvas com sucesso.' });
             }
 
             return res.status(405).json({ success: false, message: 'Method Not Allowed' });
@@ -102,8 +114,7 @@ module.exports = async (req, res) => {
             connection.release();
         }
     } catch (error) {
-        // This will catch critical errors like failed DB connection
         console.error('API Error in settings.js:', error);
-        return res.status(500).json({ success: false, message: 'Erro interno do servidor. Verifique as credenciais do banco de dados.' });
+        return res.status(500).json({ success: false, message: 'Erro interno do servidor.' });
     }
 };
