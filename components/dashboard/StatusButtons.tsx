@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, AlertOctagon, CheckCircle, Clock, PlayCircle, Check, AlertTriangle, XCircle } from 'lucide-react';
+import { Loader2, AlertOctagon, CheckCircle, Clock, PlayCircle, Check, AlertTriangle, XCircle, ShieldCheck } from 'lucide-react';
 import { StatusType } from './DashboardTypes';
 
 const statusConfig = {
@@ -148,7 +148,7 @@ export const ProblemStatusButton: React.FC<{
             {isUpdating ? (
                 <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
-                isProblem ? <AlertTriangle className="w-4 h-4" /> : <span className="text-[10px] font-medium text-slate-600">—</span>
+                isProblem ? <AlertTriangle className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4 opacity-20" />
             )}
         </button>
     );

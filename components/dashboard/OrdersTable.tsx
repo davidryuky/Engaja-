@@ -24,9 +24,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     onOpenPix
 }) => {
 
-    // Grid Template Otimizado para Layout Linear:
-    // Damos mais espaço para a coluna central (minmax 300px) reduzindo um pouco Qtd e Data
-    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(300px,1fr)_140px_140px_140px_60px_110px]";
+    // Grid Template Otimizado com colunas mais largas para status e ações
+    // Reduzi o minmax central para 200px para acomodar o aumento das colunas laterais sem quebrar em telas médias
+    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_160px_160px_160px_80px_140px]";
 
     return (
         <div className="w-full bg-brand-dark-200 border border-brand-purple/20 rounded-lg overflow-hidden shadow-xl">
@@ -141,7 +141,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 
                                 {/* 8. Problem Status */}
                                 <div className="w-full lg:w-auto flex justify-end lg:justify-center mb-2 lg:mb-0">
-                                    <div className="w-8">
+                                    <div className="w-full px-2">
                                         <ProblemStatusButton orderId={order.id} currentStatus={order.problem_status} onUpdate={onStatusUpdate} />
                                     </div>
                                 </div>
