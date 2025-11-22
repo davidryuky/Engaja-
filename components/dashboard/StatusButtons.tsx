@@ -43,7 +43,7 @@ const statusConfig = {
                 label: 'Em Andamento'
             },
             'Concluido': {
-                className: 'bg-green-500 text-black font-bold border border-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]',
+                className: 'bg-emerald-600 text-white font-bold border border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]',
                 icon: CheckCircle,
                 label: 'CONCLUÍDO'
             },
@@ -139,7 +139,7 @@ export const ProblemStatusButton: React.FC<{
             className={`
                 flex items-center justify-center w-full h-7 rounded-md transition-all duration-200
                 ${isProblem 
-                    ? 'bg-red-600 text-white font-bold shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-500' 
+                    ? 'bg-red-600 text-white font-bold shadow-[0_0_12px_rgba(220,38,38,0.6)] hover:bg-red-500' 
                     : 'text-slate-600 hover:text-slate-400 hover:bg-white/5'
                 }
             `}

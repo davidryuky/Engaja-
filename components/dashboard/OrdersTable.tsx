@@ -41,7 +41,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 <div className="text-center">Progresso</div>
                 <div className="text-center">Status Final</div>
                 <div className="text-center">Prob</div>
-                <div className="text-right">Ações</div>
+                <div className="text-center">Ações</div>
             </div>
 
             {/* BODY */}
@@ -147,7 +147,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                                 </div>
 
                                 {/* 9. Actions */}
-                                <div className="w-full lg:w-auto flex justify-end gap-1 border-t border-white/5 pt-2 lg:pt-0 lg:border-0">
+                                <div className="w-full lg:w-auto flex justify-end lg:justify-center gap-1 border-t border-white/5 pt-2 lg:pt-0 lg:border-0">
                                     <ActionIcon 
                                         onClick={() => onOpenNotes(order)} 
                                         icon={FileText} 
