@@ -1,29 +1,53 @@
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, AlertOctagon, CheckCircle } from 'lucide-react';
+import { Loader2, AlertOctagon, CheckCircle, Clock, PlayCircle, Check, AlertTriangle } from 'lucide-react';
 import { StatusType } from './DashboardTypes';
 
 const statusConfig = {
     payment_status: {
         states: ['Aguardando Pagamento', 'Pago'],
-        colors: {
-            'Aguardando Pagamento': 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 hover:bg-yellow-500/20',
-            'Pago': 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20',
+        config: {
+            'Aguardando Pagamento': {
+                color: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 hover:bg-yellow-500/20',
+                icon: Clock,
+                label: 'Aguardando'
+            },
+            'Pago': {
+                color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20',
+                icon: Check,
+                label: 'Pago'
+            },
         },
     },
     progress_status: {
         states: ['Parado', 'Iniciado'],
-        colors: {
-            'Parado': 'bg-slate-700/30 text-slate-400 border border-slate-600/30 hover:bg-slate-600/30',
-            'Iniciado': 'bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20',
+        config: {
+            'Parado': {
+                color: 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700',
+                icon: Loader2, // Static icon for 'Parado'
+                label: 'Parado'
+            },
+            'Iniciado': {
+                color: 'bg-blue-500/10 text-blue-400 border border-blue-500/30 hover:bg-blue-500/20',
+                icon: PlayCircle,
+                label: 'Iniciado'
+            },
         },
     },
     completion_status: {
         states: ['Incompleto', 'Concluido'],
-        colors: {
-            'Incompleto': 'bg-slate-700/30 text-slate-400 border border-slate-600/30 hover:bg-slate-600/30',
-            // Verde mais forte para Concluido
-            'Concluido': 'bg-green-600/20 text-green-400 border border-green-500/40 hover:bg-green-600/30',
+        config: {
+            'Incompleto': {
+                color: 'bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700',
+                icon: Loader2, // Static
+                label: 'Em Andamento'
+            },
+            // STATUS DE DESTAQUE: CONCLUÍDO (Neon Green)
+            'Concluido': {
+                color: 'bg-green-500 text-brand-dark font-bold shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:bg-green-400 hover:shadow-[0_0_20px_rgba(34,197,94,0.6)] border-none',
+                icon: CheckCircle,
+                label: 'Concluído'
+            },
         },
     },
 };
@@ -38,18 +62,23 @@ export const StatusButton: React.FC<{
     const [isUpdating, setIsUpdating] = useState(false);
 
     // @ts-ignore
-    const config = statusConfig[statusType];
-    if (!config) return null;
+    const typeConfig = statusConfig[statusType];
+    if (!typeConfig) return null;
 
-    const currentIndex = config.states.indexOf(status);
-    const nextIndex = (currentIndex + 1) % config.states.length;
-    const nextStatus = config.states[nextIndex];
+    const stateConfig = typeConfig.config[status];
+    // Fallback safety
+    if (!stateConfig) return <span className="text-xs text-red-500">Erro de Status</span>;
+
+    const currentIndex = typeConfig.states.indexOf(status);
+    const nextIndex = (currentIndex + 1) % typeConfig.states.length;
+    const nextStatus = typeConfig.states[nextIndex];
 
     useEffect(() => {
         setStatus(currentStatus);
     }, [currentStatus]);
 
-    const handleClick = async () => {
+    const handleClick = async (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent clicking the row
         setIsUpdating(true);
         try {
             await onUpdate(orderId, statusType, nextStatus);
@@ -61,18 +90,26 @@ export const StatusButton: React.FC<{
         }
     };
 
-    // Format status text for display (optional: shorten strings if needed)
-    const displayStatus = status === 'Aguardando Pagamento' ? 'Aguardando' : status;
+    const Icon = stateConfig.icon;
 
     return (
         <button
             onClick={handleClick}
             disabled={isUpdating}
-            // @ts-ignore
-            className={`w-full relative rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-wide focus:outline-none transition-all duration-200 disabled:cursor-wait ${config.colors[status] || 'bg-slate-700'}`}
+            className={`
+                group relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider transition-all duration-300 w-full
+                ${stateConfig.color}
+                ${isUpdating ? 'opacity-70 cursor-wait' : 'cursor-pointer'}
+            `}
         >
-            <span className={isUpdating ? 'opacity-0' : 'opacity-100'}>{displayStatus}</span>
-            {isUpdating && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-3 w-3 animate-spin" /></div>}
+            {isUpdating ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+                <>
+                    <Icon className="w-3 h-3" />
+                    <span className="font-bold">{stateConfig.label}</span>
+                </>
+            )}
         </button>
     );
 };
@@ -92,7 +129,8 @@ export const ProblemStatusButton: React.FC<{
         setStatus(currentStatus || 'Normal');
     }, [currentStatus]);
 
-    const handleClick = async () => {
+    const handleClick = async (e: React.MouseEvent) => {
+        e.stopPropagation();
         setIsUpdating(true);
         try {
             await onUpdate(orderId, 'problem_status', nextStatus);
@@ -108,19 +146,19 @@ export const ProblemStatusButton: React.FC<{
         <button
             onClick={handleClick}
             disabled={isUpdating}
-            className={`relative inline-flex items-center justify-center p-1 rounded transition-colors duration-200 disabled:cursor-wait border ${
-                isProblem
-                    ? 'bg-red-600/20 text-red-500 border-red-500/40 hover:bg-red-600/30' // Vermelho forte
-                    : 'border-transparent text-slate-600 hover:text-green-400 hover:bg-green-500/10'
-                }`}
+            className={`
+                relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300
+                ${isProblem 
+                    ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] hover:bg-red-500 animate-pulse' 
+                    : 'text-slate-600 hover:text-slate-300 hover:bg-brand-purple/20'
+                }
+            `}
             title={isProblem ? 'Resolver Problema' : 'Marcar como Problema'}
         >
             {isUpdating ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isProblem ? (
-                <AlertOctagon className="h-4 w-4" />
+                <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-                <CheckCircle className="h-4 w-4" />
+                <AlertTriangle className={`w-4 h-4 ${isProblem ? 'fill-current' : ''}`} />
             )}
         </button>
     );
