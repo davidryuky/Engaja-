@@ -126,14 +126,21 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
       }
       drawField("Status Final", statusText, statusColor, true);
 
-      // Rodapé
-      const bottomY = height - 60;
-      ctx.font = "italic 20px Arial, sans-serif";
-      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      // 7. Rodapé com Mensagem
+      const bottomY = height - 90;
+      
+      // Mensagem de Agradecimento
+      ctx.font = "bold 28px Arial, sans-serif";
+      ctx.fillStyle = "#e677af"; // Rosa da marca
       ctx.textAlign = "center";
-      ctx.fillText("Gerado por Engaja+ | engajamais.com", width / 2, bottomY);
+      ctx.fillText("Obrigado pela preferência :)", width / 2, bottomY);
 
-      // 7. Gerar URL da Imagem
+      // Link do site
+      ctx.font = "italic 18px Arial, sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
+      ctx.fillText("engajamais.com", width / 2, bottomY + 40);
+
+      // 8. Gerar URL da Imagem
       const dataUrl = canvas.toDataURL('image/png');
       setImageUrl(dataUrl);
 
