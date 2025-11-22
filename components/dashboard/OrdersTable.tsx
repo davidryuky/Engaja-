@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, Eye, QrCode, Trash2, Loader2, Layers, Share2 } from 'lucide-react';
+import { FileText, Eye, QrCode, Trash2, Loader2, ExternalLink, Calendar, Layers, MoreHorizontal } from 'lucide-react';
 import { Order, StatusType } from './DashboardTypes';
 import { StatusButton, ProblemStatusButton } from './StatusButtons';
 
@@ -12,7 +12,6 @@ interface OrdersTableProps {
     onOpenNotes: (order: Order) => void;
     onOpenDetails: (order: Order) => void;
     onOpenPix: (order: Order) => void;
-    onOpenShare: (order: Order) => void;
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -22,12 +21,12 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     onDelete,
     onOpenNotes,
     onOpenDetails,
-    onOpenPix,
-    onOpenShare
+    onOpenPix
 }) => {
 
-    // Grid Template Otimizado - Aumentei a última coluna (Ações) de 160px para 200px
-    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_180px_180px_180px_110px_200px]";
+    // Grid Template Otimizado: Aumentei as larguras das colunas finais (180px, 110px, 160px)
+    // para acomodar os titulos completos e dar mais respiro aos botões.
+    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_180px_180px_180px_110px_160px]";
 
     return (
         <div className="w-full bg-brand-dark-200 border border-brand-purple/20 rounded-lg overflow-hidden shadow-xl">
@@ -62,6 +61,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                         const isCompleted = order.completion_status === 'Concluido';
 
                         // Row Background Logic
+                        // Alteração: Cores muito mais fortes e borda lateral
                         let rowBgClass = "hover:bg-white/[0.02] border-l-4 border-transparent";
                         
                         if (isProblem) {
@@ -154,25 +154,16 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 
                                 {/* 9. Actions */}
                                 <div className="w-full lg:w-auto flex justify-end lg:justify-center gap-1 border-t border-white/5 pt-2 lg:pt-0 lg:border-0">
-                                    {/* Ícone de Compartilhar Destacado */}
-                                    <button 
-                                        onClick={() => onOpenShare(order)} 
-                                        className="p-1.5 rounded-md transition-all duration-200 text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400 hover:text-white"
-                                        title="Gerar Comprovante"
-                                    >
-                                        <Share2 className="w-4 h-4" />
-                                    </button>
-
                                     <ActionIcon 
                                         onClick={() => onOpenNotes(order)} 
                                         icon={FileText} 
                                         active={!!order.notes}
-                                        activeColor="text-yellow-500 bg-yellow-500/10"
+                                        activeColor="text-yellow-500"
                                         label="Notas"
                                     />
                                     <ActionIcon onClick={() => onOpenDetails(order)} icon={Eye} label="Ver" />
                                     <ActionIcon onClick={() => onOpenPix(order)} icon={QrCode} label="Pix" />
-                                    <ActionIcon onClick={() => onDelete(order.id)} icon={Trash2} hoverColor="hover:text-red-400 hover:bg-red-500/10" label="Excluir" />
+                                    <ActionIcon onClick={() => onDelete(order.id)} icon={Trash2} hoverColor="hover:text-red-400" label="Excluir" />
                                 </div>
                             </div>
                         );
@@ -184,12 +175,12 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 };
 
 // Micro-component for consistent action buttons
-const ActionIcon = ({ onClick, icon: Icon, active = false, activeColor = '', hoverColor = 'hover:text-white hover:bg-white/10', label }: any) => (
+const ActionIcon = ({ onClick, icon: Icon, active = false, activeColor = '', hoverColor = 'hover:text-white', label }: any) => (
     <button 
         onClick={onClick} 
         className={`
             p-1.5 rounded-md transition-all duration-200
-            ${active ? activeColor : 'text-slate-500'}
+            ${active ? activeColor : 'text-slate-500 hover:bg-white/10'}
             ${!active && hoverColor}
         `}
         title={label}
