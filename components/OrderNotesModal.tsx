@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { X as CloseIcon, Loader2 } from 'lucide-react';
-import { Order } from './DashboardPage';
+import { Order } from './dashboard/DashboardTypes';
 
 interface OrderNotesModalProps {
   isOpen: boolean;

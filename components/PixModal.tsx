@@ -1,11 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { X as CloseIcon, Copy, Check } from 'lucide-react';
+import { Order } from './dashboard/DashboardTypes';
 
-// --- TYPE DEFINITIONS ---
-interface Order {
-    id: number;
-    public_id: string;
-}
 interface PixModalProps {
   isOpen: boolean;
   onClose: () => void;

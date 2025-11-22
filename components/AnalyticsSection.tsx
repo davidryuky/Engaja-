@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart2, TrendingUp, Layers, Calendar } from 'lucide-react';
-import { Order } from './DashboardPage';
+import { Order } from './dashboard/DashboardTypes';
 
 export const AnalyticsSection: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);

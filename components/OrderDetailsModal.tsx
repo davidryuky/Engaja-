@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { X as CloseIcon, ExternalLink } from 'lucide-react';
-import { Order } from './DashboardPage'; // Import the Order type
+import { Order } from './dashboard/DashboardTypes';
 
 interface OrderDetailsModalProps {
   isOpen: boolean;
