@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, Eye, QrCode, Trash2, Loader2, ExternalLink, Calendar, Layers, MoreHorizontal } from 'lucide-react';
+import { FileText, Eye, QrCode, Trash2, Loader2, Layers, Share2 } from 'lucide-react';
 import { Order, StatusType } from './DashboardTypes';
 import { StatusButton, ProblemStatusButton } from './StatusButtons';
 
@@ -12,6 +12,7 @@ interface OrdersTableProps {
     onOpenNotes: (order: Order) => void;
     onOpenDetails: (order: Order) => void;
     onOpenPix: (order: Order) => void;
+    onOpenShare: (order: Order) => void; // New Prop
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -21,11 +22,11 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     onDelete,
     onOpenNotes,
     onOpenDetails,
-    onOpenPix
+    onOpenPix,
+    onOpenShare
 }) => {
 
-    // Grid Template Otimizado: Aumentei as larguras das colunas finais (180px, 110px, 160px)
-    // para acomodar os titulos completos e dar mais respiro aos botões.
+    // Grid Template Otimizado
     const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_180px_180px_180px_110px_160px]";
 
     return (
@@ -61,7 +62,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                         const isCompleted = order.completion_status === 'Concluido';
 
                         // Row Background Logic
-                        // Alteração: Cores muito mais fortes e borda lateral
                         let rowBgClass = "hover:bg-white/[0.02] border-l-4 border-transparent";
                         
                         if (isProblem) {
@@ -154,6 +154,12 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 
                                 {/* 9. Actions */}
                                 <div className="w-full lg:w-auto flex justify-end lg:justify-center gap-1 border-t border-white/5 pt-2 lg:pt-0 lg:border-0">
+                                    <ActionIcon 
+                                        onClick={() => onOpenShare(order)} 
+                                        icon={Share2} 
+                                        hoverColor="hover:text-brand-pink" 
+                                        label="Compartilhar"
+                                    />
                                     <ActionIcon 
                                         onClick={() => onOpenNotes(order)} 
                                         icon={FileText} 

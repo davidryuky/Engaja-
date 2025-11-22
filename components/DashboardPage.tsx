@@ -14,6 +14,7 @@ import { PixModal } from './PixModal';
 import { OrderDetailsModal } from './OrderDetailsModal';
 import { OrderNotesModal } from './OrderNotesModal';
 import { SettingsModal } from './SettingsModal';
+import { ShareOrderModal } from './ShareOrderModal'; // New Import
 
 // Types
 import { Order, StatusType } from './dashboard/DashboardTypes';
@@ -51,6 +52,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     
     const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
     const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<Order | null>(null);
+
+    // Share Modal State
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [selectedOrderForShare, setSelectedOrderForShare] = useState<Order | null>(null);
     
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     
@@ -247,6 +252,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     onOpenNotes={(o) => { setSelectedOrderForNotes(o); setIsNotesModalOpen(true); }}
                     onOpenDetails={(o) => { setSelectedOrderForDetails(o); setIsDetailsModalOpen(true); }}
                     onOpenPix={(o) => { setSelectedOrderForPix(o); setIsPixModalOpen(true); }}
+                    onOpenShare={(o) => { setSelectedOrderForShare(o); setIsShareModalOpen(true); }}
                 />
 
                 {/* PAGINATION */}
@@ -302,6 +308,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     // @ts-ignore
                     order={selectedOrderForNotes}
                     onSave={handleSaveNotes}
+                />
+            )}
+            {isShareModalOpen && selectedOrderForShare && (
+                <ShareOrderModal
+                    isOpen={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    // @ts-ignore
+                    order={selectedOrderForShare}
                 />
             )}
             {isSettingsModalOpen && (
