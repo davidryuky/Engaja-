@@ -12,7 +12,7 @@ interface OrdersTableProps {
     onOpenNotes: (order: Order) => void;
     onOpenDetails: (order: Order) => void;
     onOpenPix: (order: Order) => void;
-    onOpenShare: (order: Order) => void; // New Prop
+    onOpenShare: (order: Order) => void;
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -26,8 +26,8 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     onOpenShare
 }) => {
 
-    // Grid Template Otimizado
-    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_180px_180px_180px_110px_160px]";
+    // Grid Template Otimizado - Aumentei a última coluna (Ações) de 160px para 200px
+    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_180px_180px_180px_110px_200px]";
 
     return (
         <div className="w-full bg-brand-dark-200 border border-brand-purple/20 rounded-lg overflow-hidden shadow-xl">
@@ -154,22 +154,25 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 
                                 {/* 9. Actions */}
                                 <div className="w-full lg:w-auto flex justify-end lg:justify-center gap-1 border-t border-white/5 pt-2 lg:pt-0 lg:border-0">
-                                    <ActionIcon 
+                                    {/* Ícone de Compartilhar Destacado */}
+                                    <button 
                                         onClick={() => onOpenShare(order)} 
-                                        icon={Share2} 
-                                        hoverColor="hover:text-brand-pink" 
-                                        label="Compartilhar"
-                                    />
+                                        className="p-1.5 rounded-md transition-all duration-200 text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400 hover:text-white"
+                                        title="Gerar Comprovante"
+                                    >
+                                        <Share2 className="w-4 h-4" />
+                                    </button>
+
                                     <ActionIcon 
                                         onClick={() => onOpenNotes(order)} 
                                         icon={FileText} 
                                         active={!!order.notes}
-                                        activeColor="text-yellow-500"
+                                        activeColor="text-yellow-500 bg-yellow-500/10"
                                         label="Notas"
                                     />
                                     <ActionIcon onClick={() => onOpenDetails(order)} icon={Eye} label="Ver" />
                                     <ActionIcon onClick={() => onOpenPix(order)} icon={QrCode} label="Pix" />
-                                    <ActionIcon onClick={() => onDelete(order.id)} icon={Trash2} hoverColor="hover:text-red-400" label="Excluir" />
+                                    <ActionIcon onClick={() => onDelete(order.id)} icon={Trash2} hoverColor="hover:text-red-400 hover:bg-red-500/10" label="Excluir" />
                                 </div>
                             </div>
                         );
@@ -181,12 +184,12 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 };
 
 // Micro-component for consistent action buttons
-const ActionIcon = ({ onClick, icon: Icon, active = false, activeColor = '', hoverColor = 'hover:text-white', label }: any) => (
+const ActionIcon = ({ onClick, icon: Icon, active = false, activeColor = '', hoverColor = 'hover:text-white hover:bg-white/10', label }: any) => (
     <button 
         onClick={onClick} 
         className={`
             p-1.5 rounded-md transition-all duration-200
-            ${active ? activeColor : 'text-slate-500 hover:bg-white/10'}
+            ${active ? activeColor : 'text-slate-500'}
             ${!active && hoverColor}
         `}
         title={label}
