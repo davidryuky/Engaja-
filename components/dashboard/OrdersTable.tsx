@@ -24,17 +24,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     onOpenPix
 }) => {
 
-    // Grid Template Atualizado:
-    // 1. ID (70px)
-    // 2. Qtd (90px) - Movido
-    // 3. Data (110px) - Movido
-    // 4. Serviço/Link (Flex) - Restante
-    // 5. Pagamento (140px) - Aumentado
-    // 6. Progresso (140px) - Aumentado
-    // 7. Status Final (140px) - Aumentado
-    // 8. Prob (60px) - Aumentado
-    // 9. Ações (110px) - Aumentado
-    const desktopGrid = "grid-cols-[70px_90px_110px_minmax(200px,1fr)_140px_140px_140px_60px_110px]";
+    // Grid Template Otimizado para Layout Linear:
+    // Damos mais espaço para a coluna central (minmax 300px) reduzindo um pouco Qtd e Data
+    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(300px,1fr)_140px_140px_140px_60px_110px]";
 
     return (
         <div className="w-full bg-brand-dark-200 border border-brand-purple/20 rounded-lg overflow-hidden shadow-xl">
@@ -90,7 +82,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                                     </span>
                                 </div>
 
-                                {/* 2. Quantity (Moved) */}
+                                {/* 2. Quantity */}
                                 <div className="w-full lg:w-auto flex justify-between lg:justify-center mb-1 lg:mb-0">
                                     <span className="lg:hidden text-xs text-slate-500 uppercase font-bold">Qtd:</span>
                                     <span className="font-mono text-xs text-slate-300 bg-black/20 px-2 py-0.5 rounded border border-white/5">
@@ -98,33 +90,36 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                                     </span>
                                 </div>
 
-                                {/* 3. Date (Moved & Centered) */}
+                                {/* 3. Date */}
                                 <div className="hidden lg:flex justify-center text-[11px] text-slate-500">
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center leading-tight">
                                         <span>{new Date(order.created_at).toLocaleDateString('pt-BR')}</span>
-                                        <span className="text-[10px] opacity-70">{new Date(order.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span>
+                                        <span className="text-[10px] opacity-60">{new Date(order.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span>
                                     </div>
                                 </div>
 
-                                {/* 4. Service & Link */}
+                                {/* 4. Service & Link (LINEAR) */}
                                 <div className="w-full mb-2 lg:mb-0 min-w-0 pr-4">
-                                    <div className="flex flex-col gap-1 w-full">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold uppercase text-slate-500 bg-black/20 px-1 rounded border border-white/5 flex-shrink-0">
-                                                {order.platform}
-                                            </span>
-                                            <span className="text-slate-200 text-xs font-medium truncate" title={order.service}>
-                                                {order.service}
-                                            </span>
-                                        </div>
+                                    <div className="flex items-center gap-2 w-full text-xs">
+                                        {/* Plataforma */}
+                                        <span className="font-bold uppercase text-slate-500 bg-black/20 px-1.5 py-0.5 rounded border border-white/5 flex-shrink-0 text-[10px]">
+                                            {order.platform}
+                                        </span>
+
+                                        {/* Serviço */}
+                                        <span className="text-slate-200 font-medium truncate flex-shrink-0 max-w-[120px] xl:max-w-[180px]" title={order.service}>
+                                            {order.service}
+                                        </span>
+                                        
+                                        {/* Link */}
                                         <a 
                                             href={order.link} 
                                             target="_blank" 
                                             rel="noopener noreferrer"
-                                            className="text-cyan-500 hover:text-cyan-300 truncate hover:underline font-mono text-[10px] opacity-80 flex items-center gap-1"
+                                            className="text-cyan-500 hover:text-cyan-300 truncate hover:underline font-mono opacity-80 min-w-0 flex-1"
                                             title={order.link}
                                         >
-                                            <ExternalLink className="w-3 h-3 inline" /> {order.link}
+                                            {order.link}
                                         </a>
                                     </div>
                                 </div>
