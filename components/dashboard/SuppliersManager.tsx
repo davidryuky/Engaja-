@@ -122,32 +122,32 @@ export const SuppliersManager: React.FC = () => {
                     <p>Nenhum fornecedor.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-10 gap-2">
                     {suppliers.map(supplier => (
                         <div
                             key={supplier.id}
-                            className={`group relative flex items-center justify-between p-1.5 rounded-md transition-all duration-200 border ${supplier.is_favorited ? 'bg-yellow-500/5 border-yellow-500/30' : 'bg-brand-dark border-brand-purple/10 hover:border-brand-purple/40'}`}
+                            className={`group relative flex items-center justify-between p-2.5 rounded-md transition-all duration-200 border ${supplier.is_favorited ? 'bg-yellow-500/5 border-yellow-500/30' : 'bg-brand-dark border-brand-purple/10 hover:border-brand-purple/40'}`}
                         >
-                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <button
                                     onClick={() => handleToggleFavorite(supplier.id, !supplier.is_favorited)}
-                                    className="focus:outline-none"
+                                    className="focus:outline-none flex-shrink-0"
                                     title={supplier.is_favorited ? 'Desfavoritar' : 'Favoritar'}
                                 >
-                                    <Star className={`w-3 h-3 ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-600 hover:text-slate-400'}`} />
+                                    <Star className={`w-3.5 h-3.5 ${supplier.is_favorited ? 'text-yellow-400 fill-current' : 'text-slate-600 hover:text-slate-400'}`} />
                                 </button>
                                 <a
                                     href={supplier.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[11px] text-slate-300 hover:text-brand-pink truncate font-medium"
+                                    className="text-xs text-slate-300 hover:text-brand-pink truncate font-medium"
                                     title={supplier.name}
                                 >
                                     {supplier.name}
                                 </a>
                             </div>
                             
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                 <a
                                     href={supplier.link}
                                     target="_blank"
@@ -155,14 +155,14 @@ export const SuppliersManager: React.FC = () => {
                                     className="text-slate-500 hover:text-brand-pink"
                                     title="Abrir Link"
                                 >
-                                   <ExternalLink className="w-3 h-3" />
+                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
                                 <button
                                     onClick={() => handleDeleteSupplier(supplier.id)}
                                     className="text-slate-600 hover:text-red-400"
                                     title="Remover"
                                 >
-                                    <Trash2 className="w-3 h-3" />
+                                    <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
                         </div>

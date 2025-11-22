@@ -47,59 +47,64 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 </div>
             ) : (
                 <table className="w-full text-sm text-left text-slate-300">
-                    <thead className="text-xs text-slate-400 uppercase bg-brand-dark sticky top-0">
+                    <thead className="text-[11px] text-slate-400 uppercase bg-brand-dark sticky top-0 z-10 shadow-sm">
                         <tr>
-                            <th scope="col" className="px-6 py-4 font-bold tracking-wider">ID Pedido</th>
-                            <th scope="col" className="px-6 py-4 font-bold tracking-wider">Serviço</th>
-                            <th scope="col" className="px-6 py-4 font-bold tracking-wider">Data</th>
-                            <th scope="col" className="px-6 py-4 font-bold tracking-wider">Pagamento</th>
-                            <th scope="col" className="px-6 py-4 font-bold tracking-wider">Progresso</th>
-                            <th scope="col" className="px-6 py-4 font-bold tracking-wider">Finalização</th>
-                            <th scope="col" className="px-6 py-4 text-center font-bold tracking-wider">Problema</th>
-                            <th scope="col" className="px-6 py-4 font-bold tracking-wider">Ações</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-24">ID</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider">Serviço</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-32">Data</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Pagamento</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Progresso</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Finalização</th>
+                            <th scope="col" className="px-4 py-2 text-center font-bold tracking-wider w-28">Problema</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider text-right w-32">Ações</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-brand-purple/10">
                         {orders.map(order => (
-                            <tr key={order.id} className={`border-b border-brand-purple/20 transition-colors duration-300 ${getOrderRowClass(order)}`}>
-                                <td className="px-6 py-4 font-mono font-bold text-brand-pink">{order.public_id}</td>
-                                <td className="px-6 py-4">
-                                    <div className="font-semibold text-white">{order.platform}</div>
-                                    <div className="text-xs text-slate-400 mb-1">{order.service}</div>
-                                    <div className="text-xs font-mono bg-brand-dark inline-block px-2 py-0.5 rounded border border-brand-purple/20 text-slate-300">
-                                        {order.quantity ? `Qtd: ${order.quantity.toLocaleString('pt-BR')}` : 'Comentários'}
+                            <tr key={order.id} className={`transition-colors duration-200 ${getOrderRowClass(order)}`}>
+                                <td className="px-4 py-2 font-mono font-bold text-brand-pink text-xs">
+                                    {order.public_id}
+                                </td>
+                                <td className="px-4 py-2">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                        <span className="font-bold text-white text-xs">{order.platform}</span>
+                                        <span className="text-[10px] font-mono bg-brand-dark px-1.5 rounded border border-brand-purple/20 text-slate-400">
+                                            {order.quantity ? order.quantity.toLocaleString('pt-BR') : 'Comentários'}
+                                        </span>
+                                    </div>
+                                    <div className="text-[11px] text-slate-400 truncate max-w-[200px]" title={order.service}>
+                                        {order.service}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400">
-                                    {new Date(order.created_at).toLocaleDateString('pt-BR')}
-                                    <br />
-                                    {new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                <td className="px-4 py-2 whitespace-nowrap text-[11px] text-slate-500">
+                                    <div>{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
+                                    <div className="text-[10px] opacity-70">{new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
                                 </td>
-                                <td className="px-6 py-4">
+                                <td className="px-4 py-2">
                                     <StatusButton orderId={order.id} currentStatus={order.payment_status} statusType="payment_status" onUpdate={onStatusUpdate} />
                                 </td>
-                                <td className="px-6 py-4">
+                                <td className="px-4 py-2">
                                     <StatusButton orderId={order.id} currentStatus={order.progress_status} statusType="progress_status" onUpdate={onStatusUpdate} />
                                 </td>
-                                <td className="px-6 py-4">
+                                <td className="px-4 py-2">
                                     <StatusButton orderId={order.id} currentStatus={order.completion_status} statusType="completion_status" onUpdate={onStatusUpdate} />
                                 </td>
-                                <td className="px-6 py-4">
+                                <td className="px-4 py-2 text-center">
                                     <ProblemStatusButton orderId={order.id} currentStatus={order.problem_status} onUpdate={onStatusUpdate} />
                                 </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-1">
-                                        <button onClick={() => onOpenNotes(order)} className={`p-2 rounded-full transition-colors ${order.notes ? 'text-yellow-400 hover:bg-yellow-400/10' : 'text-slate-400 hover:text-white hover:bg-slate-500/10'}`} title={order.notes ? "Ver Anotações (Existe nota)" : "Adicionar Anotações"}>
-                                            <FileText className="w-4 h-4" />
+                                <td className="px-4 py-2 text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                        <button onClick={() => onOpenNotes(order)} className={`p-1.5 rounded transition-colors ${order.notes ? 'text-yellow-400 bg-yellow-400/10' : 'text-slate-500 hover:text-slate-300 hover:bg-brand-purple/20'}`} title={order.notes ? "Ver Anotações" : "Adicionar Nota"}>
+                                            <FileText className="w-3.5 h-3.5" />
                                         </button>
-                                        <button onClick={() => onOpenDetails(order)} className="text-slate-400 hover:text-brand-pink p-2 rounded-full hover:bg-slate-500/10 transition-colors" title="Visualizar Detalhes">
-                                            <Eye className="w-4 h-4" />
+                                        <button onClick={() => onOpenDetails(order)} className="text-slate-400 hover:text-brand-pink p-1.5 rounded hover:bg-brand-purple/20 transition-colors" title="Detalhes">
+                                            <Eye className="w-3.5 h-3.5" />
                                         </button>
-                                        <button onClick={() => onOpenPix(order)} className="text-cyan-500 hover:text-cyan-300 p-2 rounded-full hover:bg-cyan-500/10 transition-colors" title="Gerar PIX">
-                                            <QrCode className="w-4 h-4" />
+                                        <button onClick={() => onOpenPix(order)} className="text-cyan-600 hover:text-cyan-400 p-1.5 rounded hover:bg-cyan-500/10 transition-colors" title="PIX">
+                                            <QrCode className="w-3.5 h-3.5" />
                                         </button>
-                                        <button onClick={() => onDelete(order.id)} className="text-red-500 hover:text-red-400 p-2 rounded-full hover:bg-red-500/10 transition-colors" title="Apagar Pedido">
-                                            <Trash2 className="w-4 h-4" />
+                                        <button onClick={() => onDelete(order.id)} className="text-red-600 hover:text-red-400 p-1.5 rounded hover:bg-red-500/10 transition-colors" title="Excluir">
+                                            <Trash2 className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
                                 </td>
