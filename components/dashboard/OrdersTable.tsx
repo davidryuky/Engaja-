@@ -24,9 +24,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     onOpenPix
 }) => {
 
-    // Grid Template Otimizado com colunas mais largas para status e ações
-    // Reduzi o minmax central para 200px para acomodar o aumento das colunas laterais sem quebrar em telas médias
-    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_160px_160px_160px_80px_140px]";
+    // Grid Template Otimizado: Aumentei as larguras das colunas finais (180px, 110px, 160px)
+    // para acomodar os titulos completos e dar mais respiro aos botões.
+    const desktopGrid = "grid-cols-[70px_70px_100px_minmax(200px,1fr)_180px_180px_180px_110px_160px]";
 
     return (
         <div className="w-full bg-brand-dark-200 border border-brand-purple/20 rounded-lg overflow-hidden shadow-xl">
@@ -40,7 +40,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 <div className="text-center">Pagamento</div>
                 <div className="text-center">Progresso</div>
                 <div className="text-center">Status Final</div>
-                <div className="text-center">Prob</div>
+                <div className="text-center">Problema</div>
                 <div className="text-center">Ações</div>
             </div>
 
