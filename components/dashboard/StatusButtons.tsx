@@ -22,7 +22,8 @@ const statusConfig = {
         states: ['Incompleto', 'Concluido'],
         colors: {
             'Incompleto': 'bg-slate-700/30 text-slate-400 border border-slate-600/30 hover:bg-slate-600/30',
-            'Concluido': 'bg-brand-purple/10 text-brand-pink border border-brand-purple/20 hover:bg-brand-purple/20',
+            // Verde mais forte para Concluido
+            'Concluido': 'bg-green-600/20 text-green-400 border border-green-500/40 hover:bg-green-600/30',
         },
     },
 };
@@ -107,10 +108,10 @@ export const ProblemStatusButton: React.FC<{
         <button
             onClick={handleClick}
             disabled={isUpdating}
-            className={`relative inline-flex items-center justify-center p-1 rounded transition-colors duration-200 disabled:cursor-wait ${
+            className={`relative inline-flex items-center justify-center p-1 rounded transition-colors duration-200 disabled:cursor-wait border ${
                 isProblem
-                    ? 'text-red-400 hover:bg-red-500/20'
-                    : 'text-slate-600 hover:text-green-400 hover:bg-green-500/10'
+                    ? 'bg-red-600/20 text-red-500 border-red-500/40 hover:bg-red-600/30' // Vermelho forte
+                    : 'border-transparent text-slate-600 hover:text-green-400 hover:bg-green-500/10'
                 }`}
             title={isProblem ? 'Resolver Problema' : 'Marcar como Problema'}
         >
