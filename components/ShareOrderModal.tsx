@@ -53,7 +53,6 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
       await new Promise<void>((resolve, reject) => {
         logoImg.onload = () => resolve();
         logoImg.onerror = () => {
-             // Se falhar o logo, continua sem ele para não travar
              console.warn("Falha ao carregar logo para o canvas");
              resolve();
         };
@@ -98,7 +97,6 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
         const maxWidth = 600;
         let displayValue = value;
         if (ctx.measureText(displayValue).width > maxWidth) {
-            // Simple truncation logic
             while (ctx.measureText(displayValue + "...").width > maxWidth && displayValue.length > 0) {
                 displayValue = displayValue.slice(0, -1);
             }
@@ -171,30 +169,40 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
     document.body.removeChild(link);
   };
 
-  // Ação: Compartilhar (Web Share API para Mobile)
+  // Ação: Compartilhar (Híbrido Mobile/Desktop)
   const handleShare = async () => {
-    if (!imageUrl || !canvasRef.current) return;
+    if (!imageUrl || isGenerating) return;
 
     try {
-        // Converter DataURL para Blob
         const blob = await (await fetch(imageUrl)).blob();
-        const file = new File([blob], `pedido-${order.public_id}.png`, { type: 'image/png' });
+        const file = new File([blob], `comprovante-${order.public_id}.png`, { type: 'image/png' });
+        
+        // Texto da mensagem
+        const text = `Olá! Segue o resumo do pedido *#${order.public_id}*.\n\nStatus: *${order.completion_status === 'Concluido' ? 'Concluído ✅' : 'Em Andamento ⏳'}*`;
 
-        if (navigator.share) {
+        // 1. Tentar Compartilhamento Nativo (Celulares)
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
-                title: 'Resumo do Pedido Engaja+',
-                text: `Olá! Aqui está o resumo do seu pedido #${order.public_id}.`,
                 files: [file],
+                title: 'Comprovante Engaja+',
+                text: text,
             });
         } else {
-            // Fallback para Desktop: Abre WhatsApp Web com texto (imagem deve ser colada manualmente)
-            alert("Em computadores, baixe a imagem e anexe manualmente no WhatsApp.");
+            // 2. Fallback para Desktop (Baixar + WhatsApp Web)
+            // Primeiro baixa a imagem
             handleDownload();
-            const text = `Olá! Segue o resumo do pedido *#${order.public_id}*.`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            
+            // Depois abre o WhatsApp Web com o texto
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(waUrl, '_blank');
+            
+            // Avisa o usuário
+            alert("A imagem foi salva no seu computador!\n\nO WhatsApp foi aberto. Por favor, anexe a imagem manualmente na conversa.");
         }
     } catch (error) {
         console.error("Erro ao compartilhar:", error);
+        // Em caso de erro obscuro, tenta pelo menos o download
+        handleDownload();
     }
   };
 
@@ -254,8 +262,8 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
             </button>
         </div>
         
-        <p className="text-xs text-slate-500 mt-4 text-center">
-            Gera uma imagem otimizada para envio.
+        <p className="text-xs text-slate-500 mt-4 text-center px-4">
+            No computador, a imagem será baixada automaticamente para você anexar.
         </p>
       </div>
     </div>
