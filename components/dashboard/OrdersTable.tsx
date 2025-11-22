@@ -51,7 +51,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                         <tr>
                             <th scope="col" className="px-4 py-2 font-bold tracking-wider w-24">ID</th>
                             <th scope="col" className="px-4 py-2 font-bold tracking-wider">Serviço</th>
-                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-32">Data</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-40">Data</th>
                             <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Pagamento</th>
                             <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Progresso</th>
                             <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Finalização</th>
@@ -62,23 +62,27 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                     <tbody className="divide-y divide-brand-purple/10">
                         {orders.map(order => (
                             <tr key={order.id} className={`transition-colors duration-200 ${getOrderRowClass(order)}`}>
-                                <td className="px-4 py-2 font-mono font-bold text-brand-pink text-xs">
+                                <td className="px-4 py-2 font-mono font-bold text-brand-pink text-xs whitespace-nowrap">
                                     {order.public_id}
                                 </td>
-                                <td className="px-4 py-2">
-                                    <div className="flex items-center gap-2 mb-0.5">
-                                        <span className="font-bold text-white text-xs">{order.platform}</span>
-                                        <span className="text-[10px] font-mono bg-brand-dark px-1.5 rounded border border-brand-purple/20 text-slate-400">
+                                <td className="px-4 py-2 max-w-[300px]">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-bold text-white text-xs whitespace-nowrap">{order.platform}</span>
+                                        <span className="text-slate-600 mx-1">•</span>
+                                        <span className="text-[11px] text-slate-300 truncate flex-1" title={order.service}>
+                                            {order.service}
+                                        </span>
+                                        <span className="text-[10px] font-mono bg-brand-dark px-1.5 py-0.5 rounded border border-brand-purple/20 text-slate-400 whitespace-nowrap ml-2">
                                             {order.quantity ? order.quantity.toLocaleString('pt-BR') : 'Comentários'}
                                         </span>
                                     </div>
-                                    <div className="text-[11px] text-slate-400 truncate max-w-[200px]" title={order.service}>
-                                        {order.service}
-                                    </div>
                                 </td>
-                                <td className="px-4 py-2 whitespace-nowrap text-[11px] text-slate-500">
-                                    <div>{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
-                                    <div className="text-[10px] opacity-70">{new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                                <td className="px-4 py-2 whitespace-nowrap">
+                                    <div className="text-[11px] text-slate-500 flex items-center gap-2">
+                                        <span>{new Date(order.created_at).toLocaleDateString('pt-BR')}</span>
+                                        <span className="opacity-40">|</span>
+                                        <span>{new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
                                 </td>
                                 <td className="px-4 py-2">
                                     <StatusButton orderId={order.id} currentStatus={order.payment_status} statusType="payment_status" onUpdate={onStatusUpdate} />
@@ -92,7 +96,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                                 <td className="px-4 py-2 text-center">
                                     <ProblemStatusButton orderId={order.id} currentStatus={order.problem_status} onUpdate={onStatusUpdate} />
                                 </td>
-                                <td className="px-4 py-2 text-right">
+                                <td className="px-4 py-2 text-right whitespace-nowrap">
                                     <div className="flex items-center justify-end gap-1">
                                         <button onClick={() => onOpenNotes(order)} className={`p-1.5 rounded transition-colors ${order.notes ? 'text-yellow-400 bg-yellow-400/10' : 'text-slate-500 hover:text-slate-300 hover:bg-brand-purple/20'}`} title={order.notes ? "Ver Anotações" : "Adicionar Nota"}>
                                             <FileText className="w-3.5 h-3.5" />
