@@ -124,7 +124,7 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
           statusColor = "#fbbf24"; // Amarelo
           statusText = "EM ANDAMENTO";
       }
-      drawField("Status Final", statusText, statusColor, true);
+      drawField("Status", statusText, statusColor, true);
 
       // 7. Rodapé com Mensagem
       const bottomY = height - 90;
