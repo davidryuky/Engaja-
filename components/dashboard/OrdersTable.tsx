@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, Eye, QrCode, Trash2, Loader2 } from 'lucide-react';
+import { FileText, Eye, QrCode, Trash2, Loader2, ExternalLink } from 'lucide-react';
 import { Order, StatusType } from './DashboardTypes';
 import { StatusButton, ProblemStatusButton } from './StatusButtons';
 
@@ -49,14 +49,16 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 <table className="w-full text-sm text-left text-slate-300">
                     <thead className="text-[11px] text-slate-400 uppercase bg-brand-dark sticky top-0 z-10 shadow-sm">
                         <tr>
-                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-24">ID</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-20">ID</th>
                             <th scope="col" className="px-4 py-2 font-bold tracking-wider">Serviço</th>
-                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-40">Data</th>
-                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Pagamento</th>
-                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Progresso</th>
-                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-36">Finalização</th>
-                            <th scope="col" className="px-4 py-2 text-center font-bold tracking-wider w-28">Problema</th>
-                            <th scope="col" className="px-4 py-2 font-bold tracking-wider text-right w-32">Ações</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-40">Link</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-24 text-center">Qtd</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-32">Data</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-32">Pagamento</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-32">Progresso</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider w-32">Finalização</th>
+                            <th scope="col" className="px-4 py-2 text-center font-bold tracking-wider w-24">Problema</th>
+                            <th scope="col" className="px-4 py-2 font-bold tracking-wider text-right w-28">Ações</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-brand-purple/10">
@@ -65,17 +67,35 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                                 <td className="px-4 py-2 font-mono font-bold text-brand-pink text-xs whitespace-nowrap">
                                     {order.public_id}
                                 </td>
-                                <td className="px-4 py-2 max-w-[300px]">
-                                    <div className="flex items-center gap-2">
+                                <td className="px-4 py-2 max-w-[220px]">
+                                    <div className="flex items-center gap-2 truncate">
                                         <span className="font-bold text-white text-xs whitespace-nowrap">{order.platform}</span>
                                         <span className="text-slate-600 mx-1">•</span>
-                                        <span className="text-[11px] text-slate-300 truncate flex-1" title={order.service}>
+                                        <span className="text-[11px] text-slate-300 truncate" title={order.service}>
                                             {order.service}
                                         </span>
-                                        <span className="text-[10px] font-mono bg-brand-dark px-1.5 py-0.5 rounded border border-brand-purple/20 text-slate-400 whitespace-nowrap ml-2">
-                                            {order.quantity ? order.quantity.toLocaleString('pt-BR') : 'Comentários'}
-                                        </span>
                                     </div>
+                                </td>
+                                <td className="px-4 py-2 max-w-[150px]">
+                                    <a 
+                                        href={order.link} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="flex items-center gap-1 text-cyan-500 hover:text-cyan-300 truncate text-[11px]"
+                                        title={order.link}
+                                    >
+                                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                        <span className="truncate">{order.link}</span>
+                                    </a>
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                    {order.quantity ? (
+                                        <span className="font-mono font-bold text-white bg-brand-dark px-1.5 py-0.5 rounded border border-brand-purple/20">
+                                            {order.quantity.toLocaleString('pt-BR')}
+                                        </span>
+                                    ) : (
+                                        <span className="text-slate-500 text-[10px] italic">Ver Detalhes</span>
+                                    )}
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap">
                                     <div className="text-[11px] text-slate-500 flex items-center gap-2">
