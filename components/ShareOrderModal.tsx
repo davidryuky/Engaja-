@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { X as CloseIcon, Share2, Loader2, Download } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import { Order } from './dashboard/DashboardTypes';
 
 interface ShareOrderModalProps {
@@ -25,6 +24,9 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
     }
 
     try {
+      // Dynamic import to avoid build issues and load only when needed
+      const html2canvas = (await import('html2canvas')).default;
+
       // Configuração para alta qualidade
       const canvas = await html2canvas(element, {
         backgroundColor: '#1e1433', // brand-dark-200

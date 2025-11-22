@@ -56,27 +56,39 @@ async function initializeDatabase() {
         `);
 
         // Schema Migration: Check for new columns and add them if missing
+        // Wrapped in try-catch to prevent API crash if column exists or permission issues
         
         // 1. Check for 'notes'
-        const [notesColumns] = await connection.execute(
-            `SHOW COLUMNS FROM orders LIKE 'notes'`
-        );
-        if (notesColumns.length === 0) {
-            await connection.execute(
-                `ALTER TABLE orders ADD COLUMN notes TEXT`
+        try {
+            const [notesColumns] = await connection.execute(
+                `SHOW COLUMNS FROM orders LIKE 'notes'`
             );
+            if (notesColumns.length === 0) {
+                await connection.execute(
+                    `ALTER TABLE orders ADD COLUMN notes TEXT`
+                );
+            }
+        } catch (migErr) {
+            console.warn("Migration warning (notes):", migErr.message);
         }
 
         // 2. Check for 'problem_status'
-        const [problemColumns] = await connection.execute(
-            `SHOW COLUMNS FROM orders LIKE 'problem_status'`
-        );
-        if (problemColumns.length === 0) {
-            await connection.execute(
-                `ALTER TABLE orders ADD COLUMN problem_status ENUM('Normal', 'Problema') NOT NULL DEFAULT 'Normal'`
+        try {
+            const [problemColumns] = await connection.execute(
+                `SHOW COLUMNS FROM orders LIKE 'problem_status'`
             );
+            if (problemColumns.length === 0) {
+                await connection.execute(
+                    `ALTER TABLE orders ADD COLUMN problem_status ENUM('Normal', 'Problema') NOT NULL DEFAULT 'Normal'`
+                );
+            }
+        } catch (migErr) {
+             console.warn("Migration warning (problem_status):", migErr.message);
         }
 
+    } catch (err) {
+        console.error("Database initialization failed:", err);
+        // We don't throw here to allow the endpoint to try serving the request anyway if table exists
     } finally {
         connection.release();
     }
@@ -108,7 +120,7 @@ module.exports = async (req, res) => {
         await ensureDbInitialized();
     } catch (dbError) {
         console.error('Database Initialization Error:', dbError);
-        return res.status(500).json({ success: false, message: 'Falha crítica ao inicializar o banco de dados.' });
+        // Continue even if init failed, maybe the DB is fine
     }
 
 
