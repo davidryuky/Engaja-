@@ -8,6 +8,7 @@ import { SuppliersManager } from './dashboard/SuppliersManager';
 import { OrdersFilters } from './dashboard/OrdersFilters';
 import { OrdersTable } from './dashboard/OrdersTable';
 import { AnalyticsSection } from './AnalyticsSection';
+import { QuickOrderSection } from './dashboard/QuickOrderSection'; // NEW
 
 // Modals
 import { PixModal } from './PixModal';
@@ -207,6 +208,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                 
                 {/* SUPPLIERS SECTION */}
                 <SuppliersManager />
+
+                {/* QUICK ORDER SECTION (NEW) */}
+                <QuickOrderSection />
 
                 {/* ORDERS HEADER & ACTIONS */}
                 <div className="mb-6 flex justify-between items-center flex-wrap gap-4">
