@@ -33,46 +33,52 @@ module.exports = async (req, res) => {
         const connection = await pool.getConnection();
         let config = null;
         try {
+            // 1. Buscar configuração da API
             const [rows] = await connection.execute('SELECT * FROM quick_order_configs WHERE id = ?', [config_id]);
             if (rows.length === 0) {
                 return res.status(404).json({ success: false, message: 'Configuração de serviço não encontrada.' });
             }
             config = rows[0];
+
+            // 2. Construir URL da API Externa
+            const params = new URLSearchParams();
+            params.append('key', config.api_key);
+            params.append('action', 'add');
+            params.append('service', config.service_id);
+            params.append('link', link);
+            params.append('quantity', quantity);
+
+            // 3. Executar pedido externo
+            const externalResponse = await fetch(`${config.api_url}?${params.toString()}`, {
+                method: 'POST',
+            });
+
+            const data = await externalResponse.json();
+
+            if (data.error) {
+                return res.status(400).json({ success: false, message: `Erro da API Externa: ${data.error}` });
+            }
+
+            // 4. Se sucesso, atualizar status local automaticamente
+            if (data.order) {
+                // Atualiza TODOS os pedidos locais que tenham o mesmo link e ainda não estejam 'Iniciado' (opcional) ou força 'Iniciado'
+                await connection.execute(
+                    "UPDATE orders SET progress_status = 'Iniciado' WHERE link = ?",
+                    [link]
+                );
+
+                return res.status(200).json({ 
+                    success: true, 
+                    message: `Pedido realizado com sucesso! ID Externo: ${data.order}. Status local atualizado.`,
+                    external_order_id: data.order 
+                });
+            }
+
+            return res.status(200).json({ success: true, message: 'Pedido enviado.', data: data });
+
         } finally {
             connection.release();
         }
-
-        // Construir URL da API Externa (Padrão SMM)
-        // action=add&service=ID&link=LINK&quantity=QTD&key=API_KEY
-        const params = new URLSearchParams();
-        params.append('key', config.api_key);
-        params.append('action', 'add');
-        params.append('service', config.service_id);
-        params.append('link', link);
-        params.append('quantity', quantity);
-
-        // Fetch externo
-        const externalResponse = await fetch(`${config.api_url}?${params.toString()}`, {
-            method: 'POST', // Muitos SMM aceitam GET, mas POST é mais seguro. Se falhar, tentamos GET.
-        });
-
-        const data = await externalResponse.json();
-
-        // Verificar resposta do SMM (geralmente retorna { order: 12345 } ou { error: "..." })
-        if (data.error) {
-            return res.status(400).json({ success: false, message: `Erro da API Externa: ${data.error}` });
-        }
-
-        if (data.order) {
-            return res.status(200).json({ 
-                success: true, 
-                message: `Pedido realizado com sucesso! ID Externo: ${data.order}`,
-                external_order_id: data.order 
-            });
-        }
-
-        // Fallback para respostas desconhecidas
-        return res.status(200).json({ success: true, message: 'Pedido enviado.', data: data });
 
     } catch (error) {
         console.error('Execute Quick Order Error:', error);

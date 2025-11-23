@@ -210,7 +210,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                 <SuppliersManager />
 
                 {/* QUICK ORDER SECTION (NEW) */}
-                <QuickOrderSection />
+                <QuickOrderSection 
+                    onOrderSuccess={() => fetchOrders(currentPage, filters, searchQuery)} 
+                />
 
                 {/* ORDERS HEADER & ACTIONS */}
                 <div className="mb-6 flex justify-between items-center flex-wrap gap-4">

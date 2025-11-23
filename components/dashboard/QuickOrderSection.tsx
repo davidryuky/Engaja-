@@ -9,7 +9,11 @@ interface QuickOrderConfig {
     service_id: string;
 }
 
-export const QuickOrderSection: React.FC = () => {
+interface QuickOrderSectionProps {
+    onOrderSuccess?: () => void;
+}
+
+export const QuickOrderSection: React.FC<QuickOrderSectionProps> = ({ onOrderSuccess }) => {
     const [configs, setConfigs] = useState<QuickOrderConfig[]>([]);
     const [selectedConfigId, setSelectedConfigId] = useState<string>('');
     const [link, setLink] = useState('');
@@ -65,6 +69,10 @@ export const QuickOrderSection: React.FC = () => {
                 setResultMessage({ type: 'success', text: data.message });
                 setLink('');
                 setQuantity('');
+                // Notifica o componente pai para atualizar a tabela
+                if (onOrderSuccess) {
+                    onOrderSuccess();
+                }
             } else {
                 setResultMessage({ type: 'error', text: data.message });
             }
