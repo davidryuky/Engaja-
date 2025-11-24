@@ -23,7 +23,7 @@ function getPool() {
 
 // Helper function to generate a random alphanumeric public ID
 function generatePublicId() {
-    const prefix = 'EG';
+    const prefix = 'AX';
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
     for (let i = 0; i < 5; i++) {

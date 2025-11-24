@@ -174,7 +174,7 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
     if (!imageUrl) return;
     const link = document.createElement('a');
     link.href = imageUrl;
-    link.download = `pedido-${order.public_id}.png`;
+    link.download = `arvex-pedido-${order.public_id}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -186,7 +186,7 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
 
     try {
         const blob = await (await fetch(imageUrl)).blob();
-        const file = new File([blob], `comprovante-${order.public_id}.png`, { type: 'image/png' });
+        const file = new File([blob], `arvex-comprovante-${order.public_id}.png`, { type: 'image/png' });
         
         // Texto da mensagem
         const text = `Olá! Segue o resumo do pedido *#${order.public_id}*.\n\nStatus: *${order.completion_status === 'Concluido' ? 'Concluído ✅' : 'Em Andamento ⏳'}*`;

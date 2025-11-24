@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // Star Icon component
@@ -56,7 +57,7 @@ export const TestimonialsSection: React.FC = () => {
     {
       name: 'Marcos P.',
       handle: '@marcos_trainer',
-      text: 'Como personal trainer, a credibilidade online é tudo. A Engaja+ me ajudou a construir uma base sólida de seguidores, o que atraiu muitos novos clientes.',
+      text: 'Como personal trainer, a credibilidade online é tudo. A Arvex Social me ajudou a construir uma base sólida de seguidores, o que atraiu muitos novos clientes.',
       rating: 5,
     },
     {
