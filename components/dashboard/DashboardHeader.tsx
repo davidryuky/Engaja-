@@ -11,8 +11,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onOpenSettings
     return (
         <header className="bg-brand-dark-200 border-b border-brand-purple/30 p-4 flex justify-between items-center sticky top-0 z-30 shadow-md">
             <div className="flex items-center gap-4">
-                <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-12" />
-                <h1 className="text-xl md:text-2xl font-bold text-white hidden sm:block">Painel Administrativo</h1>
+                <span className="text-2xl font-extrabold text-white tracking-tight">
+                    Arvex<span className="text-brand-pink font-light ml-1">Social</span>
+                </span>
+                <div className="h-6 w-px bg-slate-600 mx-2 hidden sm:block"></div>
+                <h1 className="text-lg font-medium text-slate-300 hidden sm:block">Painel Administrativo</h1>
             </div>
             <div className="flex items-center gap-2">
                 <button

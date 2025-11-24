@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 const FaqItem: React.FC<{ question: string; answer: string }> = ({ question, answer }) => {
@@ -40,7 +41,7 @@ export const FaqSection: React.FC = () => {
         'Um número maior de seguidores serve como prova social, aumentando a credibilidade do seu perfil. Isso atrai mais seguidores orgânicos, incentiva mais curtidas e comentários, e aumenta a visibilidade do seu conteúdo, fazendo com que os algoritmos o recomendem para mais pessoas.',
     },
     {
-      question: 'É seguro comprar seguidores com a Engaja+?',
+      question: 'É seguro comprar seguidores com a Arvex Social?',
       answer:
         'Sim, totalmente seguro. Utilizamos métodos que estão em conformidade com as diretrizes das redes sociais. Nunca solicitamos sua senha, garantindo a total segurança e privacidade da sua conta.',
     },

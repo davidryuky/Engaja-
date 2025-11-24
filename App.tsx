@@ -71,8 +71,8 @@ const App: React.FC = () => {
   // Effect to check for an active session on initial load
   useEffect(() => {
     try {
-        const sessionActive = sessionStorage.getItem('engaja_plus_auth') === 'true';
-        const persistentSession = localStorage.getItem('engaja_plus_auth') === 'true';
+        const sessionActive = sessionStorage.getItem('arvex_social_auth') === 'true';
+        const persistentSession = localStorage.getItem('arvex_social_auth') === 'true';
         if (sessionActive || persistentSession) {
             setIsAuthenticated(true);
         }
@@ -116,9 +116,9 @@ const App: React.FC = () => {
   const handleLoginSuccess = (rememberMe: boolean) => {
     try {
         if (rememberMe) {
-            localStorage.setItem('engaja_plus_auth', 'true');
+            localStorage.setItem('arvex_social_auth', 'true');
         } else {
-            sessionStorage.setItem('engaja_plus_auth', 'true');
+            sessionStorage.setItem('arvex_social_auth', 'true');
         }
     } catch (error) {
         console.error("Could not access storage: ", error);
@@ -129,8 +129,8 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     try {
-        localStorage.removeItem('engaja_plus_auth');
-        sessionStorage.removeItem('engaja_plus_auth');
+        localStorage.removeItem('arvex_social_auth');
+        sessionStorage.removeItem('arvex_social_auth');
     } catch (error) {
         console.error("Could not access storage: ", error);
     }

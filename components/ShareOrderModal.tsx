@@ -45,23 +45,34 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
       ctx.fillStyle = topBarGradient;
       ctx.fillRect(0, 0, width, 15);
 
-      // 4. Carregar e Desenhar Logo
-      const logoImg = new Image();
-      logoImg.crossOrigin = "anonymous";
-      logoImg.src = "https://i.postimg.cc/jj7rdzv8/logoengaja.png";
+      // 4. Desenhar Logo em Texto (Arvex Social)
+      // Arvex (Bold White)
+      ctx.font = "bold 50px Poppins, Arial, sans-serif";
+      ctx.textAlign = "center";
+      
+      const arvexText = "Arvex";
+      const socialText = "Social";
+      
+      // Measure to center the combo
+      const arvexWidth = ctx.measureText(arvexText).width;
+      // Change font for Social part
+      ctx.font = "300 50px Poppins, Arial, sans-serif";
+      const socialWidth = ctx.measureText(socialText).width;
+      const totalWidth = arvexWidth + 10 + socialWidth;
+      
+      const startX = (width - totalWidth) / 2;
 
-      await new Promise<void>((resolve, reject) => {
-        logoImg.onload = () => resolve();
-        logoImg.onerror = () => {
-             console.warn("Falha ao carregar logo para o canvas");
-             resolve();
-        };
-      });
+      // Draw Arvex
+      ctx.font = "bold 50px Poppins, Arial, sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "left";
+      ctx.fillText(arvexText, startX, 100);
 
-      // Centralizar Logo
-      const logoWidth = 200;
-      const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
-      ctx.drawImage(logoImg, (width - logoWidth) / 2, 60, logoWidth, logoHeight);
+      // Draw Social
+      ctx.font = "300 50px Poppins, Arial, sans-serif";
+      ctx.fillStyle = "#e677af"; // Brand Pink
+      ctx.fillText(socialText, startX + arvexWidth + 10, 100);
+
 
       // 5. Título "Resumo do Pedido"
       ctx.font = "bold 40px Arial, sans-serif";
@@ -136,7 +147,7 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
       // Link do site
       ctx.font = "italic 18px Arial, sans-serif";
       ctx.fillStyle = "rgba(255,255,255,0.4)";
-      ctx.fillText("engajamais.com", width / 2, bottomY + 40);
+      ctx.fillText("arvexsocial.com", width / 2, bottomY + 40);
 
       // 8. Gerar URL da Imagem
       const dataUrl = canvas.toDataURL('image/png');
@@ -184,7 +195,7 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({ isOpen, onClos
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
                 files: [file],
-                title: 'Comprovante Engaja+',
+                title: 'Comprovante Arvex Social',
                 text: text,
             });
         } else {

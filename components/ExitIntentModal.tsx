@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { X as CloseIcon, Gift } from 'lucide-react';
 
@@ -14,7 +13,7 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({ isOpen, onClos
     return null;
   }
 
-  const message = "Olá! Vi a oferta de saída no site e gostaria de resgatar meu cupom de 5% de desconto.";
+  const message = "Olá! Vi a oferta de saída no site e gostaria de resgatar meu cupom de 5% de desconto na Arvex Social.";
   const encodedMessage = encodeURIComponent(message);
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
 
@@ -52,7 +51,7 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({ isOpen, onClos
         </h2>
 
         <p className="text-slate-200 text-lg mb-8">
-          Temos um presente para você: <strong>5% de DESCONTO</strong> no seu primeiro pedido!
+          Temos um presente para você: <strong>5% de DESCONTO</strong> no seu primeiro pedido na <strong>Arvex Social</strong>!
         </p>
 
         <button 

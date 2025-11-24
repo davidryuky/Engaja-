@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // FIX: Replaced JSX.Element with React.ReactElement to resolve the "Cannot find namespace 'JSX'" error.
@@ -56,7 +57,7 @@ export const AdvantagesSection: React.FC = () => {
         <div className="container mx-auto px-6 relative z-10">
             <div className="text-center mb-16">
                 <h2 className="text-3xl md:text-4xl font-extrabold text-white">
-                    Por que escolher a <span className="text-brand-pink">Engaja+</span>?
+                    Por que escolher a <span className="text-brand-pink">Arvex Social</span>?
                 </h2>
                 <p className="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
                     Oferecemos mais do que números. Entregamos a base para o seu sucesso digital em plataformas como Instagram, TikTok, YouTube, Facebook, Twitter e LinkedIn.

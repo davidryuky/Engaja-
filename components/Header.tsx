@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { handleScroll } from '../utils/scroll';
 
@@ -33,8 +34,11 @@ export const Header: React.FC<{ onFreeTrialClick: () => void }> = ({ onFreeTrial
     <>
       <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-brand-dark/80 backdrop-blur-lg border-b border-brand-dark-200' : 'bg-transparent'}`}>
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <a href="#home" onClick={handleScroll} className="transition-transform hover:scale-105">
-            <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-16" />
+          <a href="#home" onClick={handleScroll} className="transition-transform hover:scale-105 flex items-center group">
+            {/* New Text Logo */}
+            <span className="text-3xl font-extrabold text-white tracking-tight group-hover:text-slate-100 transition-colors">
+              Arvex<span className="text-brand-pink font-light ml-1">Social</span>
+            </span>
           </a>
           <div className="hidden md:flex items-center gap-8">
              <nav className="flex space-x-8 items-center">

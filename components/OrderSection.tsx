@@ -176,7 +176,7 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
                 link,
                 comments: commentsList,
             };
-            whatsappMessage = `Olá! Gostaria de fazer um pedido na Engaja+:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Link: ${link}\n\n*Comentários:*\n${commentsList}`;
+            whatsappMessage = `Olá! Gostaria de fazer um pedido na Arvex Social:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Link: ${link}\n\n*Comentários:*\n${commentsList}`;
 
         } else {
             orderDetails = {
@@ -185,7 +185,7 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
                 link,
                 quantity,
             };
-            whatsappMessage = `Olá! Gostaria de fazer um pedido na Engaja+:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Quantidade: *${quantity.toLocaleString('pt-BR')}*\n- Link: ${link}`;
+            whatsappMessage = `Olá! Gostaria de fazer um pedido na Arvex Social:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Quantidade: *${quantity.toLocaleString('pt-BR')}*\n- Link: ${link}`;
         }
 
         try {
@@ -221,7 +221,7 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
             alert('Por favor, descreva seu pedido customizado.');
             return;
         }
-        const message = `Olá! Gostaria de solicitar um serviço personalizado na Engaja+:\n\n*Pedido:*\n${customRequest}`;
+        const message = `Olá! Gostaria de solicitar um serviço personalizado na Arvex Social:\n\n*Pedido:*\n${customRequest}`;
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');

@@ -27,7 +27,7 @@ const crc16 = (payload: string): string => {
 };
 
 const generatePixCode = (pixKey: string, amount: string, txid: string): string => {
-  const merchantName = "Engaja+";
+  const merchantName = "Arvex Social";
   const merchantCity = "SAO PAULO";
 
   const formatValue = (id: string, value: string): string => {
@@ -70,7 +70,7 @@ export const PixModal: React.FC<PixModalProps> = ({ isOpen, onClose, order }) =>
   useEffect(() => {
     if (isOpen) {
         try {
-            const savedKey = localStorage.getItem('engaja_plus_pix_key');
+            const savedKey = localStorage.getItem('arvex_pix_key');
             if (savedKey) {
                 setPixKey(savedKey);
             }
@@ -89,7 +89,7 @@ export const PixModal: React.FC<PixModalProps> = ({ isOpen, onClose, order }) =>
         return;
     }
     try {
-        localStorage.setItem('engaja_plus_pix_key', pixKey);
+        localStorage.setItem('arvex_pix_key', pixKey);
     } catch (error) {
         console.error("Could not save to localStorage:", error);
     }

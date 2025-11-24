@@ -6,8 +6,10 @@ export const Footer: React.FC = () => {
     <footer className="bg-brand-dark-200 relative">
        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-purple/50 to-transparent"></div>
       <div className="container mx-auto px-6 py-8 text-center text-slate-400 flex flex-col items-center">
-        <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-14 mb-4" />
-        <p>&copy; {new Date().getFullYear()} Engaja+. Todos os direitos reservados.</p>
+        <span className="text-2xl font-extrabold text-white tracking-tight mb-4">
+            Arvex<span className="text-brand-pink font-light ml-1">Social</span>
+        </span>
+        <p>&copy; {new Date().getFullYear()} Arvex Social. Todos os direitos reservados.</p>
         <p className="text-sm mt-2">Construindo sua presença online, um seguidor de cada vez.</p>
       </div>
     </footer>

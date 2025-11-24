@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 interface LoginPageProps {
@@ -44,10 +45,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     <div className="bg-brand-dark min-h-screen flex items-center justify-center font-sans p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-            <a href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ''; }}>
-              <img src="https://i.postimg.cc/jj7rdzv8/logoengaja.png" alt="Engaja+ Logo" className="h-20 mx-auto" />
+            <a href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ''; }} className="block transform hover:scale-105 transition-transform duration-300">
+                <span className="text-4xl font-extrabold text-white tracking-tight">
+                    Arvex<span className="text-brand-pink font-light ml-1">Social</span>
+                </span>
             </a>
-            <h1 className="text-2xl font-bold text-white mt-4">Acesso Administrativo</h1>
+            <h1 className="text-xl font-bold text-slate-300 mt-4 uppercase tracking-widest text-xs">Acesso Administrativo</h1>
         </div>
         <div className="bg-brand-dark-200 border border-brand-purple/30 rounded-2xl shadow-2xl shadow-brand-purple/10 p-8">
           <form onSubmit={handleSubmit}>
