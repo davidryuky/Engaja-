@@ -3,7 +3,7 @@ import React from 'react';
 import { Instagram, Facebook, Youtube } from 'lucide-react';
 
 const SocialIcon: React.FC<{ icon: React.ReactNode }> = ({ icon }) => (
-    <div className="p-6 bg-brand-dark-200 rounded-full border-2 border-brand-purple/30 text-slate-300 transition-all duration-300 transform hover:scale-110 hover:text-white hover:bg-gradient-to-br hover:from-brand-purple hover:to-brand-pink hover:border-brand-pink cursor-pointer">
+    <div className="p-3 md:p-6 bg-brand-dark-200 rounded-full border-2 border-brand-purple/30 text-slate-300 transition-all duration-300 transform hover:scale-110 hover:text-white hover:bg-gradient-to-br hover:from-brand-purple hover:to-brand-pink hover:border-brand-pink cursor-pointer flex items-center justify-center aspect-square">
         {icon}
     </div>
 );
@@ -45,12 +45,13 @@ const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export const SocialIconsSection: React.FC = () => {    
-    const iconStyle = { width: '48px', height: '48px', strokeWidth: '1.5px' };
-    const xIconStyle = { width: '40px', height: '40px' };
+    // Classes responsivas: menor no mobile (w-8), maior no desktop (md:w-12)
+    const iconClass = "w-8 h-8 md:w-12 md:h-12 stroke-[1.5]"; 
+    const xIconClass = "w-6 h-6 md:w-10 md:h-10"; // Ícone X precisa ser visualmente menor
 
     return (
         <section className="py-20 md:py-32 bg-brand-dark">
-            <div className="container mx-auto px-6">
+            <div className="container mx-auto px-4 md:px-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-extrabold text-white">
                         Presente nas Maiores Plataformas
@@ -59,14 +60,15 @@ export const SocialIconsSection: React.FC = () => {
                         Impulsionamos seu perfil onde seu público está.
                     </p>
                 </div>
-                <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10">
-                    <SocialIcon icon={<Instagram style={iconStyle} />} />
-                    <SocialIcon icon={<TiktokIcon style={iconStyle} />} />
-                    <SocialIcon icon={<Facebook style={iconStyle} />} />
-                    <SocialIcon icon={<XIcon style={xIconStyle} />} />
-                    <SocialIcon icon={<Youtube style={iconStyle} />} />
-                    <SocialIcon icon={<TwitchIcon style={iconStyle} />} />
-                    <SocialIcon icon={<SpotifyIcon style={iconStyle} />} />
+                {/* Grid 4 colunas no mobile, Flex wrap no desktop */}
+                <div className="grid grid-cols-4 gap-3 md:flex md:flex-wrap md:justify-center md:gap-10">
+                    <SocialIcon icon={<Instagram className={iconClass} />} />
+                    <SocialIcon icon={<TiktokIcon className={iconClass} />} />
+                    <SocialIcon icon={<Facebook className={iconClass} />} />
+                    <SocialIcon icon={<XIcon className={xIconClass} />} />
+                    <SocialIcon icon={<Youtube className={iconClass} />} />
+                    <SocialIcon icon={<TwitchIcon className={iconClass} />} />
+                    <SocialIcon icon={<SpotifyIcon className={iconClass} />} />
                 </div>
             </div>
         </section>
