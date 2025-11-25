@@ -412,6 +412,14 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
 
                     <div className="my-8 w-full h-px bg-gradient-to-r from-transparent via-brand-purple/30 to-transparent"></div>
 
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-brand-pink/10 border border-brand-pink/30 text-brand-pink text-xs font-bold uppercase tracking-widest shadow-[0_0_10px_rgba(230,119,175,0.2)]">
+                           <Star className="w-3 h-3 fill-current" />
+                           Melhor preço do mercado !
+                           <Star className="w-3 h-3 fill-current" />
+                        </div>
+                    </div>
+
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-slate-400 text-sm">
                         <div className="flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
