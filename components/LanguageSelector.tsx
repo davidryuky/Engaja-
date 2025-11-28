@@ -14,7 +14,9 @@ export const LanguageSelector: React.FC = () => {
     const setLanguageCookie = (lang: string) => {
         // Format: /source_lang/target_lang
         // We assume source is always 'pt'
-        const value = lang === 'en' ? '/pt/en' : '/pt/pt';
+        let value = '/pt/pt';
+        if (lang === 'en') value = '/pt/en';
+        if (lang === 'ja') value = '/pt/ja';
         
         // It's important to set the domain correctly so subdomains share it if needed,
         // but usually for simple sites root path on hostname is enough.
@@ -29,6 +31,8 @@ export const LanguageSelector: React.FC = () => {
             // Cookie exists, set state based on it
             if (cookie.includes('/en')) {
                 setCurrentLang('en');
+            } else if (cookie.includes('/ja')) {
+                setCurrentLang('ja');
             } else {
                 setCurrentLang('pt');
             }
@@ -36,9 +40,12 @@ export const LanguageSelector: React.FC = () => {
             // No cookie, detect browser language
             const browserLang = navigator.language.toLowerCase();
             if (browserLang.startsWith('en')) {
-                // If browser is English, auto-switch to English
                 setLanguageCookie('en');
                 setCurrentLang('en');
+                window.location.reload();
+            } else if (browserLang.startsWith('ja')) {
+                setLanguageCookie('ja');
+                setCurrentLang('ja');
                 window.location.reload();
             }
         }
@@ -68,6 +75,14 @@ export const LanguageSelector: React.FC = () => {
                  title="English"
             >
                 EN
+            </button>
+            <span className="text-slate-600 text-xs">|</span>
+            <button 
+                 onClick={() => changeLanguage('ja')}
+                 className={`text-xs font-bold transition-all duration-300 ${currentLang === 'ja' ? 'text-brand-pink' : 'text-slate-400 hover:text-white'}`}
+                 title="Japanese"
+            >
+                JP
             </button>
         </div>
     );
