@@ -93,21 +93,58 @@
       }
       
       /* --- GOOGLE TRANSLATE HIDDEN CUSTOMIZATION --- */
+      
+      /* 1. Hide the top banner frame created by Google */
       .goog-te-banner-frame.skiptranslate {
           display: none !important;
       }
+      
+      /* 2. Hide ANY iframe that Google Translate injects (skiptranslate class is key) */
+      iframe.skiptranslate {
+          display: none !important;
+          visibility: hidden !important;
+          height: 0 !important;
+          width: 0 !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+      }
+
+      /* 3. Hide specific Google Translate container classes often found in body */
+      .VIpgJd-ZVi9od-ORHb-OEVmcd {
+          display: none !important;
+          visibility: hidden !important;
+      }
+
+      /* 4. Ensure body doesn't get pushed down */
       body {
           top: 0px !important;
+          position: static !important;
       }
+      
+      /* 5. Hide the widget element itself */
+      #google_translate_element {
+          display: none !important;
+      }
+      
+      /* 6. Hide tooltips and other popups */
       .goog-te-gadget {
           display: none !important;
       }
       .goog-tooltip {
           display: none !important;
       }
-      .goog-te-gadget-simple {
+      .goog-tooltip:hover {
+          display: none !important;
+      }
+      .goog-text-highlight {
           background-color: transparent !important;
-          border: none !important;
+          box-shadow: none !important;
+      }
+      
+      /* 7. Hide "Original text" popup */
+      #goog-gt-tt {
+          display: none !important;
+          visibility: hidden !important;
       }
     </style>
     <script>
