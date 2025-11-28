@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { handleScroll } from '../utils/scroll';
+import { LanguageSelector } from './LanguageSelector';
 
 const NavLink: React.FC<{ href: string; children: React.ReactNode; onClick?: () => void }> = ({ href, children, onClick }) => (
   <a
@@ -40,12 +41,17 @@ export const Header: React.FC<{ onFreeTrialClick: () => void }> = ({ onFreeTrial
               Arvex<span className="text-brand-pink font-light ml-1">Social</span>
             </span>
           </a>
-          <div className="hidden md:flex items-center gap-8">
-             <nav className="flex space-x-8 items-center">
+          <div className="hidden md:flex items-center gap-6">
+             <nav className="flex space-x-6 items-center">
                 <NavLink href="#comprar">Comprar Agora</NavLink>
                 <NavLink href="#depoimentos">Depoimentos</NavLink>
                 <NavLink href="#contato">Contato</NavLink>
             </nav>
+            
+            <div className="h-6 w-px bg-slate-700 mx-2"></div>
+            
+            <LanguageSelector />
+            
              <button
                 onClick={onFreeTrialClick}
                 className="bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-semibold py-2 px-6 rounded-full text-base transition-all duration-300 transform hover:scale-105 shadow-md shadow-brand-purple/30"
@@ -53,8 +59,9 @@ export const Header: React.FC<{ onFreeTrialClick: () => void }> = ({ onFreeTrial
                 Teste Grátis
               </button>
           </div>
-          <div className="md:hidden">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu" className="z-50 relative w-8 h-8">
+          <div className="md:hidden flex items-center gap-4">
+             <LanguageSelector />
+             <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu" className="z-50 relative w-8 h-8">
               <span className={`block absolute h-0.5 w-full bg-white transition-all duration-300 ${isMenuOpen ? 'rotate-45 top-1/2' : 'top-2'}`}></span>
               <span className={`block absolute h-0.5 w-full bg-white transition-all duration-300 top-1/2 ${isMenuOpen ? 'opacity-0' : ''}`}></span>
               <span className={`block absolute h-0.5 w-full bg-white transition-all duration-300 ${isMenuOpen ? '-rotate-45 top-1/2' : 'bottom-2'}`}></span>
