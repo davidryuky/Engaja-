@@ -1,17 +1,21 @@
 
 import React from 'react';
+import { getTranslation } from '../utils/language';
 
 interface WhatsAppButtonProps {
   whatsappNumber: string;
 }
 
 export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ whatsappNumber }) => {
-  const message = 'Olá! Gostaria de tirar uma dúvida.';
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  // Dynamic message based on language
+  const getUrl = () => {
+      const message = getTranslation('whatsapp_initial');
+      return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  };
 
   return (
     <a
-      href={whatsappUrl}
+      href={getUrl()}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50 animate-pulse-slow"

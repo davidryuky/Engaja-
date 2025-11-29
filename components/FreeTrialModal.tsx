@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Instagram, X as CloseIcon } from 'lucide-react';
+import { getTranslation } from '../utils/language';
 
 // --- ÍCONES CUSTOMIZADOS ---
 const TiktokIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -29,8 +30,8 @@ export const FreeTrialModal: React.FC<FreeTrialModalProps> = ({ isOpen, onClose,
 
   const handleGetTrial = () => {
     if (!selectedSocial) return;
-    const message = `Olá! Gostaria de receber o teste de 50 seguidores para ${selectedSocial}.`;
-    const encodedMessage = encodeURIComponent(message);
+    const message = getTranslation('free_trial', selectedSocial);
+    const encodedMessage = encodeURIComponent(message as string);
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     onClose();

@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Instagram, Facebook, Youtube, Users, Heart, Eye, PlayCircle, Star, MessageSquare, Repeat, Radio, Clock, Mic } from 'lucide-react';
+import { getTranslation } from '../utils/language';
 
 // --- ÍCONES CUSTOMIZADOS ---
 
@@ -162,6 +163,15 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
         setIsSubmitting(true);
         let orderDetails = {};
         let whatsappMessage;
+        
+        // --- TRANSLATION VARIABLES ---
+        const tIntro = getTranslation('order_intro');
+        const tSocial = getTranslation('label_social');
+        const tService = getTranslation('label_service');
+        const tLink = getTranslation('label_link');
+        const tQty = getTranslation('label_quantity');
+        const tComments = getTranslation('label_comments');
+        const tOrderId = getTranslation('label_order_id');
 
         if (isCommentService) {
             if (commentCount < (selectedService.min || 10)) {
@@ -176,7 +186,7 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
                 link,
                 comments: commentsList,
             };
-            whatsappMessage = `Olá! Gostaria de fazer um pedido na Arvex Social:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Link: ${link}\n\n*Comentários:*\n${commentsList}`;
+            whatsappMessage = `${tIntro}\n\n- ${tSocial}: *${selectedSocial}*\n- ${tService}: *${selectedService.name}*\n- ${tLink}: ${link}\n\n*${tComments}:*\n${commentsList}`;
 
         } else {
             orderDetails = {
@@ -185,7 +195,7 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
                 link,
                 quantity,
             };
-            whatsappMessage = `Olá! Gostaria de fazer um pedido na Arvex Social:\n\n- Rede Social: *${selectedSocial}*\n- Serviço: *${selectedService.name}*\n- Quantidade: *${quantity.toLocaleString('pt-BR')}*\n- Link: ${link}`;
+            whatsappMessage = `${tIntro}\n\n- ${tSocial}: *${selectedSocial}*\n- ${tService}: *${selectedService.name}*\n- ${tQty}: *${quantity.toLocaleString('pt-BR')}*\n- ${tLink}: ${link}`;
         }
 
         try {
@@ -202,7 +212,7 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
             }
 
             // Add public Order ID to the message
-            const finalMessage = `${whatsappMessage}\n\n*ID do Pedido: ${data.publicId}*`;
+            const finalMessage = `${whatsappMessage}\n\n*${tOrderId}: ${data.publicId}*`;
             const encodedMessage = encodeURIComponent(finalMessage);
             const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
             
@@ -221,7 +231,10 @@ export const OrderSection: React.FC<OrderSectionProps> = ({ whatsappNumber }) =>
             alert('Por favor, descreva seu pedido customizado.');
             return;
         }
-        const message = `Olá! Gostaria de solicitar um serviço personalizado na Arvex Social:\n\n*Pedido:*\n${customRequest}`;
+        const tIntro = getTranslation('order_custom_intro');
+        const tReq = getTranslation('label_request');
+        
+        const message = `${tIntro}\n\n*${tReq}:*\n${customRequest}`;
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');

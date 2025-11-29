@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { X as CloseIcon, Gift } from 'lucide-react';
+import { getTranslation } from '../utils/language';
 
 interface ExitIntentModalProps {
   isOpen: boolean;
@@ -13,11 +14,10 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({ isOpen, onClos
     return null;
   }
 
-  const message = "Olá! Vi a oferta de saída no site e gostaria de resgatar meu cupom de 5% de desconto na Arvex Social.";
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-
   const handleClaimCoupon = () => {
+    const message = getTranslation('exit_intent');
+    const encodedMessage = encodeURIComponent(message as string);
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     onClose();
   };

@@ -1,13 +1,16 @@
 
 import React from 'react';
+import { getTranslation } from '../utils/language';
 
 interface ContactSectionProps {
   whatsappNumber: string;
 }
 
 export const ContactSection: React.FC<ContactSectionProps> = ({ whatsappNumber }) => {
-    const message = 'Olá! Vim pelo site e gostaria de mais informações.';
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    const getUrl = () => {
+        const message = getTranslation('contact_section');
+        return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message as string)}`;
+    };
 
     return (
         <section 
@@ -27,7 +30,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ whatsappNumber }
                 </p>
                 <div className="mt-12">
                     <a 
-                      href={whatsappUrl}
+                      href={getUrl()}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-purple/40"
