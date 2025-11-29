@@ -11,7 +11,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onOpenSettings
     return (
         <header className="bg-brand-dark-200 border-b border-brand-purple/30 p-4 flex justify-between items-center sticky top-0 z-30 shadow-md">
             <div className="flex items-center gap-4">
-                <span className="text-2xl font-extrabold text-white tracking-tight">
+                <span className="text-2xl font-extrabold text-white tracking-tight notranslate">
                     Arvex<span className="text-brand-pink font-light ml-1">Social</span>
                 </span>
                 <div className="h-6 w-px bg-slate-600 mx-2 hidden sm:block"></div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { handleScroll } from '../utils/scroll';
 
@@ -43,7 +44,9 @@ const StatCounter: React.FC<StatCounterProps> = ({ end, duration = 2000, text, s
         {React.cloneElement(icon, { className: "w-7 h-7" })}
       </div>
       <p className="text-2xl md:text-3xl font-extrabold text-white">
-        +{count.toLocaleString('pt-BR')}{suffix}
+        {/* IMPORTANT: The number part is wrapped in 'notranslate' to prevent Google Translate 
+            from interfering with the React state/animation, which was causing the number to reset to 0. */}
+        <span className="notranslate">+{count.toLocaleString('pt-BR')}</span>{suffix}
       </p>
       <p className="text-slate-400 mt-1 text-xs">{text}</p>
     </div>

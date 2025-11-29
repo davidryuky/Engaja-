@@ -46,7 +46,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
             <a href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ''; }} className="block transform hover:scale-105 transition-transform duration-300">
-                <span className="text-4xl font-extrabold text-white tracking-tight">
+                <span className="text-4xl font-extrabold text-white tracking-tight notranslate">
                     Arvex<span className="text-brand-pink font-light ml-1">Social</span>
                 </span>
             </a>

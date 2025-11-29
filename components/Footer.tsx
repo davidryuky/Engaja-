@@ -54,11 +54,18 @@ export const Footer: React.FC = () => {
 
         {/* COPYRIGHT & LOGO */}
         <div className="text-center text-slate-400 flex flex-col items-center border-t border-white/5 pt-8">
-            <span className="text-2xl font-extrabold text-white tracking-tight mb-4">
+            <span className="text-2xl font-extrabold text-white tracking-tight mb-4 notranslate">
                 Arvex<span className="text-brand-pink font-light ml-1">Social</span>
             </span>
             <p className="text-sm">&copy; {new Date().getFullYear()} Arvex Social. Todos os direitos reservados.</p>
             <p className="text-xs mt-3 text-slate-400 font-medium tracking-wide">Construindo sua presença online, um seguidor de cada vez.</p>
+            
+            <div className="mt-6 text-xs text-slate-500 flex items-center justify-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
+               <span>Desenvolvido por</span>
+               <a href="https://younext.agency/" target="_blank" rel="noopener noreferrer" className="text-brand-pink hover:underline font-bold flex items-center gap-1">
+                   YouNext Agency 🚀
+               </a>
+            </div>
         </div>
 
       </div>
